@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList } from 'react-native';
+import { Image, View, Text, TouchableOpacity, StyleSheet, Modal, FlatList, ScrollView } from 'react-native';
 
 const StockInfoComponent = ({ selectedStock, onSelectStock, stockNames, onRefresh }) => {
     const [dropdownVisible, setDropdownVisible] = useState(false);
 
     const handleSelectStock = (stock) => {
-        onSelectStock(stock);
         setDropdownVisible(false);
+        onSelectStock(stock);
     };
 
     return (
@@ -16,7 +16,7 @@ const StockInfoComponent = ({ selectedStock, onSelectStock, stockNames, onRefres
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
-                <Text>⟳</Text>
+                <Image source={require('../assets/refresh.png')} style={styles.icon} />
             </TouchableOpacity>
 
             {dropdownVisible && (
@@ -33,14 +33,17 @@ const StockInfoComponent = ({ selectedStock, onSelectStock, stockNames, onRefres
                             data={stockNames}
                             keyExtractor={(item) => item}
                             renderItem={({ item }) => (
-                                <TouchableOpacity style={styles.dropdownItem} onPress={() => handleSelectStock(item)}>
-                                    <Text style={styles.dropdownText}>{item}</Text>
+                                <TouchableOpacity onPress={() => handleSelectStock(item)}>
+                                    <View style={styles.dropdownItem}>
+                                        <Text style={styles.dropdownText}>{item}</Text>
+                                    </View>
                                 </TouchableOpacity>
                             )}
                         />
                     </View>
                 </Modal>
             )}
+
         </View>
     );
 };
@@ -51,7 +54,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: 10,
-        backgroundColor: 'white',
         borderRadius: 10,
         shadowColor: "#000",
         shadowOffset: {
@@ -87,10 +89,10 @@ const styles = StyleSheet.create({
     },
     modalView: {
         margin: 20,
-        backgroundColor: "white",
         borderRadius: 20,
         padding: 35,
         alignItems: "center",
+        backgroundColor: "white",
         shadowColor: "#000",
         shadowOffset: {
             width: 0,
@@ -98,19 +100,23 @@ const styles = StyleSheet.create({
         },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
-        elevation: 5
+        elevation: 5,
     },
     dropdownItem: {
-        padding: 10,
-        marginTop: 2,
-        backgroundColor: '#f9c2ff',
-        borderColor: '#f9c2ff',
-        borderWidth: 1,
-        fontSize: 16,
+        flex: 1,
+        padding: 20,
+        marginTop: 5,
+        borderColor: 'gray',
+        borderWidth: 2,
+        fontSize: 24,
         color: 'black',
+        borderRadius: 10,
+        width: '100%',
+        alignItems: 'center',
+
     },
     dropdownText: {
-        fontSize: 16,
+        fontSize: 24,
         color: 'black'
     }
 });

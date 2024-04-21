@@ -24,14 +24,12 @@ const CandlestickChartComponent = ({ ohlc, tradeStartIndex, currentIndex, currPr
   const roi = ((currPrice - tradeStartPrice) / tradeStartPrice) * 100.0;
 
 
-  console.log('ccc', 'takeprofit', takeProfit, 'stoploss', stopLoss, 'trailingstop', trailingStop, 'tradeStartIndex', tradeStartIndex, 'currentIndex', currentIndex, 'tradeDuration', tradeDuration, 'roi', roi, 'currPrice', currPrice, 'tradeStartPrice', tradeStartPrice, 'normalizedLastIndex', normalizedLastIndex, 'normalizedTradeStartIndex', normalizedTradeStartIndex)
-
   return (
     <View style={styles.container}>
 
       {ohlc.length && (
         <CandlestickChart.Provider data={ohlc}>
-          <CandlestickChart height={300} style={styles.chart}>
+          <CandlestickChart style={styles.chart}>
             <CandlestickChart.Candles />
             <CandlestickChart.Crosshair
               color={"rgba(250,99,2,0)"}
@@ -53,8 +51,8 @@ const CandlestickChartComponent = ({ ohlc, tradeStartIndex, currentIndex, currPr
 
         {lineData.length > 0 && (
         <LineChart.Provider data={lineData}>
-          <LineChart height={300} style={styles.overlayChart}>
-            <LineChart.Path color="rgba(240,240,240,0.1)">
+          <LineChart style={styles.overlayChart} >
+            <LineChart.Path color="rgba(240,240,240,0)">
               {/* Dots for path */}
               <LineChart.Dot color="orange" at={normalizedLastIndex} hasPulse pulseBehaviour={"always"} />
               {/* Highlight path */}
@@ -72,14 +70,14 @@ const CandlestickChartComponent = ({ ohlc, tradeStartIndex, currentIndex, currPr
               {takeProfit && (
                 <LineChart.HorizontalLine
                   at={{ value: takeProfit }}
-                  color="green"  // Color for Take Profit
+                  color="#2196F3"  // Color for Take Profit
                   label={`TP: ${takeProfit}`}
                 />
               )}
               {stopLoss && (
                 <LineChart.HorizontalLine
                   at={{ value: stopLoss }}
-                  color="red"  // Color for Stop Loss
+                  color="#FF9800"  // Color for Stop Loss
                   label={`SL: ${stopLoss}`}
                 />
               )}
@@ -88,7 +86,7 @@ const CandlestickChartComponent = ({ ohlc, tradeStartIndex, currentIndex, currPr
               {trailingStop && (
                 <LineChart.HorizontalLine
                   at={{ value: trailingStop }}
-                  color="blue"  // Color for Trailing Stop
+                  color="#9C27B0"  // Color for Trailing Stop
                   label={`TS: ${trailingStop}`}
                 />
               )}
@@ -108,10 +106,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "flex-end",
     width: '100%',
-    maxHeight: 300,
-    borderWidth: 2,
     position: 'relative',
-    marginRight: 20,
+    marginRight: '6%',
     //padding: 20,
   },
   chart: {
