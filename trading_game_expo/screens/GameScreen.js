@@ -15,6 +15,7 @@ import DraggableAdjuster from '../components/DraggableAdjuster';  // Make sure t
 import MetricsModal from '../components/MetricsModal';  // Make sure this path is correct
 
 import ohlcvDataSets from '../price_data/OhlcvDataSets';  // Adjust the path as needed
+
 const getRandomStockOhlc = () => {
   let stock;
   let keys = Object.keys(ohlcvDataSets);
@@ -160,16 +161,16 @@ console.log(wWidth, wHeight, );
     setCandlesAmount(120); // Or any appropriate default value
 }, []);
 
-    
-  useEffect(() => {
-    async function fetchChartData() {
+  async function fetchChartData() {
       const data = await getChartData(selectedStock);
       setChartData(data);
 
       // Set a random starting point for the chart display
-      const randomIndex = Math.floor(Math.random() * (data.length - candlesAmount));
+      const randomIndex = Math.floor(Math.random() * (data.length - candlesAmount - MAXIMUM_SKIP_AMOUNT+10));
       setCurrentChartIndex(randomIndex);
-    }
+  }
+    
+  useEffect(() => {
 
     fetchChartData();  // Call the async function
 
@@ -198,7 +199,7 @@ console.log(wWidth, wHeight, );
   }, [trades, position]);
 
 
-  function Trade({ entryDate, entryPrice, exitDate, exitPrice, roi, duration, direction, exitReason = null }) {
+  function Trade({ entryDate, entryPrice, exitDate, exitPrice, roi, duration, direction, priceChange, exitReason = '', isWin=false }) {
     return {
       direction,
       entryDate,
@@ -207,6 +208,7 @@ console.log(wWidth, wHeight, );
       exitPrice,
       duration,
       roi,
+      priceChange: priceChange ? priceChange : exitPrice - entryPrice,
       isWin: direction === 'Long' ? exitPrice > entryPrice : exitPrice < entryPrice,
       exitReason,
       // uuid
@@ -240,7 +242,9 @@ console.log(wWidth, wHeight, );
     const animationDurationMS = 500; // 2 seconds
     const skipTimePerCandle = animationDurationMS / (Math.log(skipAmount + 1)+1)
 
-    for (let i = 1; i <= skipAmount; i++) {
+    // add 1 to skipAmount so we see final candle!
+    const loopLength = skipAmount + 1;
+    for (let i = 1; i <= loopLength+1; i++) {
       promises.push(new Promise((resolve) => {
         setTimeout(() => {
           const newIndex = currentChartIndex + i;
@@ -302,7 +306,18 @@ console.log(wWidth, wHeight, );
     if (position) {
       const tradeDuration = position.duration;
 
-      fastForwardChart(tradeDuration + 1).then(() => {
+      // if insufficnet candles, notify and fresh new chart
+      if (currentChartIndex + tradeDuration >= chartData.length + 1) {
+        showMessage({
+          message: 'Out of candles! Refreshing New Chart!',
+          type: 'warning',
+        })
+
+        refreshNewStock()
+        return
+      }
+
+      fastForwardChart(tradeDuration).then(() => {
         console.log("FastForwared ", tradeDuration, "candles")
         console.log("Position", position)
         handleExitPosition();  // Function to handle the exit of the trade
@@ -312,8 +327,6 @@ console.log(wWidth, wHeight, );
 
         if (position.isWin) {
             triggerConfetti();
-
-          
         }
       });
     }
@@ -441,17 +454,7 @@ console.log(wWidth, wHeight, );
       direction: direction,
       exitReason: `times up`,
     });
-    // Calculate the result of the trade
-    if (direction === 'Long') {
-      trade.result = trade.exitPrice - trade.entryPrice;
-    } else { // Short
-      trade.result = trade.entryPrice - trade.exitPrice;
-    }
-    trade.isWin = trade.result > 0;
-    trade.roi = (trade.result / trade.entryPrice) * 100.0;
-
     
-
 
     console.log("Trade", trade);
     console.log("TakeProfit", takeProfit);  // Price level for taking profit
@@ -507,13 +510,39 @@ console.log(wWidth, wHeight, );
             trade.exitDate = data[i].date;
             trade.duration = i - index;
             trade.exitReason = 'trailing stop';
+
+            // calc isWin roi base don 'Long' short
+            trade.priceChange = hitPrice - trade.entryPrice;
             break;
           }
         }
+      //   else {
+      //   // timeout exit
+      //   // Calculate the result of the trade
+      //   trade.priceChange = trade.exitPrice - trade.entryPrice;
+      //   if (direction === 'Long') {
+      //     trade.isWin = trade.priceChange > 0;
+      //     trade.roi = (trade.priceChange / trade.entryPrice) * 100.0;
+      //   } else { // Short
+      //     trade.isWin = trade.priceChange < 0;
+      //     trade.roi = - (trade.priceChange / trade.entryPrice) * 100.0;
+      //   }
+          
+      // } 
+
       }
     }
 
-      
+    console.log('AAA', trade)
+    
+    if (trade.direction === 'Long') {
+      trade.isWin = trade.priceChange > 0;
+      trade.roi = (trade.priceChange / trade.entryPrice) * 100.0;
+    } else { // Short
+      trade.isWin = trade.priceChange < 0;
+      trade.roi = - (trade.priceChange / trade.entryPrice) * 100.0;
+    }
+    console.log('BBB', trade)
     return trade;
   }
 
@@ -539,17 +568,10 @@ console.log(wWidth, wHeight, );
   const refreshNewStock = () => {
     // get new stock
     const newStock = getRandomStockOhlc().stock;
-    const data = chartData.length;  // Assuming chartData is the data array for the new stock
-    const randomIndex = Math.floor(Math.random() * (data.length - MAXIMUM_SKIP_AMOUNT));
 
-    if (randomIndex > data.length - MAXIMUM_SKIP_AMOUNT) {
-      // Show flash message and refresh again
-      showFlashMessage("Out of data, refreshing...", "warning");
-      refreshNewStock();  // Recursive call to get a new valid stock
-    } else {
-      setSelectedStock(newStock);
-      setCurrentChartIndex(randomIndex);
-    }
+    setSelectedStock(newStock);
+
+    // useEffect on selectedStock updates chart!
   }
 
   const showMessageAndAdjuster = (type) => {
@@ -662,7 +684,7 @@ console.log(wWidth, wHeight, );
 
         <View style={{ position: 'absolute', top: 20, left: 20 }}>
           <Text style={{
-            color: 'darkgrey', fontStyle: 'underline', fontSize: 18, 
+            color: LIGHT_MODE ? '#808e9b' : '#d2dae2', fontStyle: 'underline', fontSize: 18, 
             textDecorationLine: 'underline',
             
           }}>Length: {candlesAmount}</Text>
@@ -673,8 +695,8 @@ console.log(wWidth, wHeight, );
             step={1}
             value={candlesAmount}
             onValueChange={setCandlesAmount}
-            minimumTrackTintColor="#307ecc"
-            maximumTrackTintColor="#000000"
+            minimumTrackTintColor="#ffa801"
+                  maximumTrackTintColor="#d2dae2"
           />
         </View>
 
@@ -685,7 +707,7 @@ console.log(wWidth, wHeight, );
           
           <View style={{ flexDirection: 'row',justifyContent: 'flex-end' }}>
             <View>
-              <Text style={{ color: 'darkgrey', fontStyle: 'underline', fontSize: 18, 
+              <Text style={{ color: LIGHT_MODE ? '#808e9b' : '#d2dae2', fontStyle: 'underline', fontSize: 18, 
             textDecorationLine: 'underline',textAlign: 'right', paddingBottom: 10 }}>Skip: {skipCandlesAmount}</Text>
               <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
                 <Slider
@@ -695,8 +717,8 @@ console.log(wWidth, wHeight, );
                   step={1}
                   value={skipCandlesAmount}
                   onValueChange={setSkipCandlesAmount}
-                  minimumTrackTintColor="#307ecc"
-                  maximumTrackTintColor="#000000"
+                  minimumTrackTintColor="#ffa801"
+                  maximumTrackTintColor="#d2dae2"
                 />
                 <TouchableOpacity
                   style={[styles.button, { marginLeft: 10 }]}
@@ -713,13 +735,13 @@ console.log(wWidth, wHeight, );
             {/* Trading Action Buttons View */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-around',  }}>
               <TouchableOpacity
-                style={[styles.longshortButton, { backgroundColor:  'green', borderRadius: 50 }]}  
+                style={[styles.longshortButton, { backgroundColor:  '#4cd137', borderRadius: 50 }]}  
                 onPress={() => executeTrade('Long')}
               >
                 <Text style={styles.longshortButtonText}>Long </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.longshortButton, { backgroundColor: 'red', borderRadius: 50 }]} 
+                style={[styles.longshortButton, { backgroundColor: '#EA2027', borderRadius: 50 }]} 
                 onPress={() => executeTrade('Short')}
               >
                 <Text style={styles.longshortButtonText}>Short</Text>
@@ -780,9 +802,12 @@ console.log(wWidth, wHeight, );
   );
 }
 
+const LIGHT_MODE = false // light or dark
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: LIGHT_MODE ? '#d1d8e0' : '#4b4b4b'
   },
 
   tradeActions: {
@@ -818,10 +843,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
     padding: 10,
+    backgroundColor: LIGHT_MODE ? '#a5b1c2' : '#3d3d3d',
+    elevation: 10, 
   },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
+    
   },
   
   controls: {
@@ -852,7 +880,7 @@ controlMenu: {
   bottom: 0,
   left: 0 ,
   borderRadius: 10,
-  backgroundColor: 'rgba(255,255,255,0.5)', // Semi-transparent white background
+  backgroundColor: LIGHT_MODE ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)', 
 },
 
 

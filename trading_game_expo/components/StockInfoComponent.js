@@ -53,6 +53,8 @@ import { Dimensions } from 'react-native';
 
 const { width: wWidth, height: wHeight } = Dimensions.get('window');
 
+const LIGHT_MODE = false
+
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
@@ -68,6 +70,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
+        backgroundColor: LIGHT_MODE ?'#4b4b4b' : '#d1d8e0',
     },
     infoContainer: {
         flexDirection: 'row',
@@ -78,13 +81,14 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         textDecorationLine: 'underline',
+        // color
+        color: LIGHT_MODE ? 'white' : 'black',
     },
     refreshButton: {
         width: 40,
         height: 40,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#e0e0e0',
         borderRadius: 20,
         marginLeft: 10,
     },
@@ -97,7 +101,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         padding: 35,
         alignItems: "center",
-        backgroundColor: "white",
+        backgroundColor: LIGHT_MODE ? '#d1d8e0' : '#4b4b4b',
         shadowColor: "#000",
         shadowOffset: {
             width: 0,
@@ -134,7 +138,7 @@ const styles = StyleSheet.create({
     },
     dropdownText: {
         fontSize: 24,
-        color: 'black'
+        color: LIGHT_MODE ? 'black' : 'white',
     }
 });
 

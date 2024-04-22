@@ -5,7 +5,6 @@ import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { CandlestickChart, LineChart } from 'react-native-wagmi-charts';
 
-import * as d3Shape from 'd3-shape';
 
 const CandlestickChartComponent = ({ ohlc, tradeStartIndex, currentIndex, currPrice, tradeStartPrice, onPressChartFn, takeProfit, stopLoss, trailingStop,
 height, width
@@ -26,6 +25,7 @@ height, width
   const normalizedLastIndex = lineData.length - 1
   const normalizedTradeStartIndex = normalizedLastIndex - tradeDuration;
 
+  
 
   const roi = ((currPrice - tradeStartPrice) / tradeStartPrice) * 100.0;
 
@@ -35,32 +35,38 @@ height, width
   return (
     <View style={styles.container}>
 
-      {ohlc.length && (
-        <CandlestickChart.Provider data={ohlc}>
-          <CandlestickChart height={height} width={width}>
-            <CandlestickChart.Candles useAnimations={false} />  {/* Disable animations */}
-            <CandlestickChart.Crosshair
-              color={"rgba(250,99,2,0)"}
-              onCurrentXChange={onPressChartFn}>
-            </CandlestickChart.Crosshair>
-            
-          </CandlestickChart>
-          {/* <CandlestickChart.PriceText type="open" />
-          <CandlestickChart.PriceText type="high" />
-          <CandlestickChart.PriceText type="low" />
-          <CandlestickChart.PriceText type="close" />
-          <CandlestickChart.DatetimeText /> */}
-        </CandlestickChart.Provider>
-      )}
-      
+      <View style={styles.chart}>
 
+        
+        {ohlc.length && (
+          <CandlestickChart.Provider data={ohlc}>
+            <CandlestickChart height={height} width={width}>
+              <CandlestickChart.Candles useAnimations={false} />  {/* Disable animations */}
+              <CandlestickChart.Crosshair
+                color={"rgba(250,99,2,0)"}
+                onCurrentXChange={onPressChartFn}>
+              </CandlestickChart.Crosshair>
+              
+            </CandlestickChart>
+            {/* <CandlestickChart.PriceText type="open" />
+            <CandlestickChart.PriceText type="high" />
+            <CandlestickChart.PriceText type="low" />
+            <CandlestickChart.PriceText type="close" />
+            <CandlestickChart.DatetimeText /> */}
+          </CandlestickChart.Provider>
+        )}
+      </View>
+
+      <View style={styles.overlayChart}>
         {lineData.length > 0 && (
         <LineChart.Provider data={lineData}>
-          <LineChart yGutter={0} absolute={true} height={height} width={width} >
+          <LineChart yGutter={0} height={height} width={width} >
             <LineChart.Path color="transparent" pathProps={{
-              isTransitionEnabled: !isWeb,
+              isTransitionEnabled: false,
               yGutter: 0,
-              absolute:true,
+              animateOnMount: false,
+              animationDuration: 0.001,
+
               //curve: d3Shape.curveNatural
             }}>
               {/* Dots for path */}
@@ -104,7 +110,8 @@ height, width
             </LineChart.Path>
           </LineChart>
         </LineChart.Provider>
-      )}
+        )}
+        </View>
 
     </View>
   );
@@ -121,7 +128,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'red'
   },
   overlayChart: {
     position: 'absolute',

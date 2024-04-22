@@ -26,7 +26,7 @@ function addTimestamps(data) {
 function addDefaultValue(data) {
     let vals = data.map(entry => ({
         ...entry,
-        value: data.close//(data.high + data.low + data.open + data.close) / 4
+        value: (data.high + data.low + data.open + data.close) / 4
     }));
     // last value uses .close 
     vals[vals.length - 1].value = data.close;
