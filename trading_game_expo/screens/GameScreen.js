@@ -154,6 +154,11 @@ console.log(wWidth, wHeight, );
   
   }
 
+  useEffect(() => {
+  // Force an update to the slider by setting an initial value
+    setSkipCandlesAmount(30); // Or any appropriate default value
+    setCandlesAmount(120); // Or any appropriate default value
+}, []);
 
     
   useEffect(() => {
