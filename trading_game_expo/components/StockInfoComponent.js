@@ -48,6 +48,11 @@ const StockInfoComponent = ({ selectedStock, onSelectStock, stockNames, onRefres
     );
 };
 
+// import dimensions as wWidth and wHeight
+import { Dimensions } from 'react-native';
+
+const { width: wWidth, height: wHeight } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
@@ -101,6 +106,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
+        width: '100%',
     },
     dropdownItem: {
         flex: 1,
@@ -111,8 +117,19 @@ const styles = StyleSheet.create({
         fontSize: 24,
         color: 'black',
         borderRadius: 10,
-        width: '100%',
         alignItems: 'center',
+        width: wWidth*0.9,
+        
+        // make nice elevated card look
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+
 
     },
     dropdownText: {

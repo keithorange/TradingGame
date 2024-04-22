@@ -1,9 +1,15 @@
+
+
+
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { CandlestickChart, LineChart } from 'react-native-wagmi-charts';
 
+import * as d3Shape from 'd3-shape';
 
-const CandlestickChartComponent = ({ ohlc, tradeStartIndex, currentIndex, currPrice, tradeStartPrice, onPressChartFn, takeProfit, stopLoss, trailingStop }) => {
+const CandlestickChartComponent = ({ ohlc, tradeStartIndex, currentIndex, currPrice, tradeStartPrice, onPressChartFn, takeProfit, stopLoss, trailingStop,
+height, width
+}) => {
 
 
   const lineData = ohlc.map(entry => ({
@@ -23,21 +29,19 @@ const CandlestickChartComponent = ({ ohlc, tradeStartIndex, currentIndex, currPr
 
   const roi = ((currPrice - tradeStartPrice) / tradeStartPrice) * 100.0;
 
+  const isWeb = Platform.OS === 'web'
+
 
   return (
     <View style={styles.container}>
 
       {ohlc.length && (
         <CandlestickChart.Provider data={ohlc}>
-          <CandlestickChart style={styles.chart}>
-            <CandlestickChart.Candles />
+          <CandlestickChart height={height} width={width}>
+            <CandlestickChart.Candles useAnimations={false} />  {/* Disable animations */}
             <CandlestickChart.Crosshair
               color={"rgba(250,99,2,0)"}
-              onCurrentXChange={(xValue) => {
-                console.log('CCC onCurrentXChange value', xValue);
-                onPressChartFn(xValue);
-            }}>
-              {/* <CandlestickChart.Tooltip /> */}
+              onCurrentXChange={onPressChartFn}>
             </CandlestickChart.Crosshair>
             
           </CandlestickChart>
@@ -48,15 +52,21 @@ const CandlestickChartComponent = ({ ohlc, tradeStartIndex, currentIndex, currPr
           <CandlestickChart.DatetimeText /> */}
         </CandlestickChart.Provider>
       )}
+      
 
         {lineData.length > 0 && (
         <LineChart.Provider data={lineData}>
-          <LineChart style={styles.overlayChart} >
-            <LineChart.Path color="rgba(240,240,240,0)">
+          <LineChart yGutter={0} absolute={true} height={height} width={width} >
+            <LineChart.Path color="transparent" pathProps={{
+              isTransitionEnabled: !isWeb,
+              yGutter: 0,
+              absolute:true,
+              //curve: d3Shape.curveNatural
+            }}>
               {/* Dots for path */}
               <LineChart.Dot color="orange" at={normalizedLastIndex} hasPulse pulseBehaviour={"always"} />
               {/* Highlight path */}
-              <LineChart.Highlight color="rgba(250,99,2,1)" from={normalizedTradeStartIndex} to={normalizedLastIndex} />
+              <LineChart.Highlight color="rgb(240,240,240,0.4)" from={normalizedTradeStartIndex} to={normalizedLastIndex} />
               {/* Horiz lines for buy/sell */}
               {tradeDuration > 0 && (
                 <LineChart.HorizontalLine at={{ value: currPrice }}
@@ -103,11 +113,6 @@ const CandlestickChartComponent = ({ ohlc, tradeStartIndex, currentIndex, currPr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "flex-end",
-    width: '100%',
-    position: 'relative',
-    marginRight: '6%',
     //padding: 20,
   },
   chart: {
@@ -116,6 +121,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    backgroundColor: 'red'
   },
   overlayChart: {
     position: 'absolute',

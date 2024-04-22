@@ -24,10 +24,13 @@ function addTimestamps(data) {
 }
 
 function addDefaultValue(data) {
-    return data.map(entry => ({
+    let vals = data.map(entry => ({
         ...entry,
-        value: data.close 
+        value: data.close//(data.high + data.low + data.open + data.close) / 4
     }));
+    // last value uses .close 
+    vals[vals.length - 1].value = data.close;
+    return vals;
 }
 
 function numbersToFloat(data) {
@@ -83,5 +86,7 @@ Object.keys(ohlcvDataSets).forEach(key => {
 Object.keys(ohlcvDataSets).forEach(key => {
     ohlcvDataSets[key] = addDefaultValue(ohlcvDataSets[key]);
 });
+
+
 
 export default ohlcvDataSets;

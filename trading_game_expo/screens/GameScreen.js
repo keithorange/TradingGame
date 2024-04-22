@@ -1,30 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {Modal,  Image, View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import Slider from '@react-native-community/slider';
+import FlashMessage from "react-native-flash-message";
+import { showMessage, hideMessage } from "react-native-flash-message";
+import ConfettiCannon from 'react-native-confetti-cannon';
+import uuid from 'react-native-uuid';
+
+import { Audio } from 'expo-av'; // Ensure this is correctly imported
+
 import CandlestickChartComponent from '../components/CandlestickChartComponent';
-import NotificationBanner from '../components/NotificationBanner';  // Make sure this path is correct
+
 import StockInfoComponent from '../components/StockInfoComponent';  // Make sure this path is correct
 import DraggableAdjuster from '../components/DraggableAdjuster';  // Make sure this path is correct
 import MetricsModal from '../components/MetricsModal';  // Make sure this path is correct
 
 import ohlcvDataSets from '../price_data/OhlcvDataSets';  // Adjust the path as needed
+const getRandomStockOhlc = () => {
+  let stock;
+  let keys = Object.keys(ohlcvDataSets);
+  let randomKey = keys[Math.floor(Math.random() * keys.length)];
+  stock = randomKey;
+  ohlc = ohlcvDataSets[stock];
+  return { stock, ohlc };
+}
+
+// get height width from dimeniosn
+import { Dimensions } from 'react-native';
+const { width: wWidth, height: wHeight } = Dimensions.get('window');
+console.log(wWidth, wHeight, );
 
 
-import { Audio } from 'expo-av'; // Ensure this is correctly imported
+  const GameScreen = ({ route }) => {
+  console.log('getRandomStockOhlc().stock', getRandomStockOhlc().stock)
 
-
-
-const GameScreen = ({ route }) => {
-  const [selectedStock, setSelectedStock] = useState('AAPL');
+  const [selectedStock, setSelectedStock] = useState(getRandomStockOhlc().stock);
 
   const [chartData, setChartData] = useState([]);
-  const [candlesAmount, setCandlesAmount] = useState(80);  // Number of candles to display [default to MAX_CANDLES
+  const [candlesAmount, setCandlesAmount] = useState(120);  // Number of candles to display [default to MAX_CANDLES
   const [currentChartIndex, setCurrentChartIndex] = useState(0);  // Control the display index for the chart
   const [tradeStartIndex, setTradeStartIndex] = useState(null);  // Track where the trade starts
 
 
-
-  const [message, setMessage] = useState(''); // notification banner
 
   const [modalVisible, setModalVisible] = useState(false); // stats metrics modal
 
@@ -40,7 +56,7 @@ const GameScreen = ({ route }) => {
   const [losses, setLosses] = useState(0);
 
   // for longshort game mode
-  const [skipCandlesAmount, setSkipCandlesAmount] = useState(20);  // Default value for the slider
+  const [skipCandlesAmount, setSkipCandlesAmount] = useState(30);  // Default value for the slider
 
   // for tpsl game mode
   const [tpslMode, setTpslMode] = useState('tp');  // adding tp or sl [take profit or stop loss] (OR ts)
@@ -49,7 +65,31 @@ const GameScreen = ({ route }) => {
   // for trailing game mode
   const [trailingStop, setTrailingStop] = useState(null); //
   const [trailingStopPct, setTrailingStopPct] = useState(null); // useEffect calculated dynamically
+  const [showConfetti, setShowConfetti] = useState(false);
+  const confettiRef = useRef(null);
 
+  const triggerConfetti = () => {
+    setShowConfetti(true);
+    // Automatically reset confetti to not show after it's done
+    setTimeout(() => {
+      setShowConfetti(false);
+    }, 5000); // Assume confetti animation lastsMAX  5 seconds
+  };
+
+    // if show conetti on, shoot confetti time!
+  useEffect(() => {
+    if (showConfetti) { 
+      if (confettiRef) { 
+        confettiRef.current.start(); 
+        // timetout to stop() anim after 
+        setTimeout(() => {
+          confettiRef.current.stop();
+        }, 5000); // Assume confetti animation lasts 5 seconds
+      }
+
+    }
+  }, [showConfetti])
+  
   // for trailing stop dynamic calculation
 
   const trailingStopToPct = (trailingStop, currentPrice) => {
@@ -139,11 +179,18 @@ const GameScreen = ({ route }) => {
     setWins(stats.wins);
     setLosses(stats.losses);
       
+    // set streak equal to # of consectuve isWins from the end
+    let streak = 0;
+    for (let i = trades.length - 1; i >= 0; i--) {
+      if (trades[i].isWin) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    setStreak(streak);
 
-    // Optionally, update streak here if needed
-    setStreak(trades.reduce((max, trade, index, array) => (trade.isWin && index > 0 && array[index - 1].isWin) ? max + 1 : max, 0));
-
-  }, [trades]);
+  }, [trades, position]);
 
 
   function Trade({ entryDate, entryPrice, exitDate, exitPrice, roi, duration, direction, exitReason = null }) {
@@ -157,7 +204,8 @@ const GameScreen = ({ route }) => {
       roi,
       isWin: direction === 'Long' ? exitPrice > entryPrice : exitPrice < entryPrice,
       exitReason,
-      
+      // uuid
+      id: uuid.v4()
     };
   }
 
@@ -184,6 +232,11 @@ const GameScreen = ({ route }) => {
 
   const fastForwardChart = (skipAmount) => {
     let promises = [];
+
+    // repeat above but not with linear scaling but with log scaling
+    const animationDurationMS = 500; // 2 seconds
+    const skipTimePerCandle = animationDurationMS / (Math.log(skipAmount + 1)+1)
+
     for (let i = 1; i <= skipAmount; i++) {
       promises.push(new Promise((resolve) => {
         setTimeout(() => {
@@ -213,15 +266,9 @@ const GameScreen = ({ route }) => {
                 return;
               }
             }
-
-            // Resolve normally if no early exit
-            if (i === skipAmount) {
-              setTimeout(resolve, 200); // Ensure the last promise resolves with a slight delay
-            } else {
-              resolve();
-            }
+            resolve();
           }
-        }, 215 * i); // Delay for simulation effect
+        }, skipTimePerCandle * i); // Delay for simulation effect
       }));
     }
 
@@ -255,10 +302,16 @@ const GameScreen = ({ route }) => {
       fastForwardChart(tradeDuration + 1).then(() => {
         console.log("FastForwared ", tradeDuration, "candles")
         console.log("Position", position)
+        handleExitPosition();  // Function to handle the exit of the trade
+        
         playSound(position.isWin);
         displayResult(position);  // Function to display trade result dynamically on the UI
-        handleExitPosition();  // Function to handle the exit of the trade
 
+        if (position.isWin) {
+            triggerConfetti();
+
+          
+        }
       });
     }
   }, [tradeStartIndex]);
@@ -286,8 +339,12 @@ const GameScreen = ({ route }) => {
     let resultMessage = trade.isWin ? `💵 Win: ${trade.roi.toFixed(2)}%` : `🔻 Loss: ${trade.roi.toFixed(2)}%`;
     resultMessage += ` via ` + trade.exitReason
 
-    setMessage(''); // Clear previous message to ensure the banner always updates
-    setTimeout(() => setMessage(resultMessage), 10); // slight delay to ensure the clear happens
+
+    showMessage({
+      message: resultMessage,
+      description: `Entry: ${trade.entryPrice.toFixed(2)} -> Exit: ${trade.exitPrice.toFixed(2)} = ${trade.roi.toFixed(2)}%  (${trade.duration} candles)`,
+      type: trade.isWin ? 'success' : 'danger',
+    })
   }
 
 
@@ -307,6 +364,7 @@ const GameScreen = ({ route }) => {
     setStopLoss(null);
     setTrailingStop(null);
     setTrailingStopPct(null);
+
 
     
   }
@@ -397,64 +455,61 @@ const GameScreen = ({ route }) => {
     console.log("TakeProfit", takeProfit);  // Price level for taking profit
     console.log("StopLoss", stopLoss);     // Price level for stopping loss
 
-    // Check if take profit or stop loss needs to be checked
-    if (takeProfit || stopLoss) {
+        // Check if take profit, stop loss, or trailing stop needs to be checked
+    if (takeProfit || stopLoss || trailingStopPct) {
       for (let i = index + 1; i <= exitIndex; i++) {
-        const price = data[i].close; // Current price at index i
+        // Checking take profit and stop loss conditions
+        const candle = data[i]
 
         if (direction === 'Long') {
+          let price = candle.high;
           if (takeProfit && price >= takeProfit) {
-            trade.exitPrice = data[i].close;
+            trade.exitPrice = price;
             trade.exitDate = data[i].date;
             trade.duration = i - index;
             trade.exitReason = 'take profit';
             break;
           }
+          price = candle.low;
           if (stopLoss && price <= stopLoss) {
-            trade.exitPrice = data[i].close;
+            trade.exitPrice = price;
             trade.exitDate = data[i].date;
             trade.duration = i - index;
             trade.exitReason = 'stop loss';
             break;
           }
         } else { // Short
+          let price = candle.low;
           if (takeProfit && price <= takeProfit) {
-            trade.exitPrice = data[i].close;
+            trade.exitPrice = price;
             trade.exitDate = data[i].date;
             trade.duration = i - index;
             trade.exitReason = 'take profit';
             break;
           }
+          price = candle.high;
           if (stopLoss && price >= stopLoss) {
-            trade.exitPrice = data[i].close;
+            trade.exitPrice = price;
             trade.exitDate = data[i].date;
             trade.duration = i - index;
             trade.exitReason = 'stop loss';
             break;
           }
         }
+
+        // Trailing stop condition
+        if (trailingStopPct) {
+          const { isHit, hitPrice } = calculateTrailingStopSequence(data.slice(index, i + 1), trailingStopPct, direction);
+          if (isHit) {
+            trade.exitPrice = hitPrice;
+            trade.exitDate = data[i].date;
+            trade.duration = i - index;
+            trade.exitReason = 'trailing stop';
+            break;
+          }
+        }
       }
     }
-    console.log("Trailing Stop", trailingStop, "Trailing Stop Pct", trailingStopPct)
-    
-    // Check if trailing stop needs to be checked
-
-    console.log('handleTradeWithConditions:: ', "ts=", trailingStop, "tsp=", trailingStopPct)
-
-    if (trailingStopPct) {
-      const { isHit, trailingStops, hitPrice, hitIdx } = calculateTrailingStopSequence(data.slice(index, exitIndex), trailingStopPct, direction);
-      console.log("Trailing Stops", trailingStops, "isHit", isHit);
-      console.log("closes", data[index]);
-
-      if (isHit) {
-        trade.exitPrice = data[hitIdx].close;
-        trade.exitDate = data[hitIdx].date;
-        trade.duration = trailingStops.length;
-        trade.exitPrice = hitPrice;
-        trade.exitReason = 'trailing stop';
-      }
-    }
-
 
       
     return trade;
@@ -473,27 +528,33 @@ const GameScreen = ({ route }) => {
     currPrice = chartData[currentChartIndex].close;
     tradeStartPrice = null;
     if (tradeStartIndex !== null) {
-      tradeStartPrice = chartData[tradeStartIndex].close;
+      tradeStartPrice = chartData[tradeStartIndex-1].close; // -1 or else will get +1 
     }
   }
 
   const refreshNewStock = () => {
+    // get new stock
+    setSelectedStock(getRandomStockOhlc().stock);
+
     // Fetch a new stock and reset the chart
     const randomIndex = Math.floor(Math.random() * (chartData.length - candlesAmount));
     setCurrentChartIndex(randomIndex);
+
   }
   
   const showMessageAndAdjuster = (type) => {
     setTpslMode(type);
     setShowAdjuster(true);
-    setMessage(`Adjust ${type.toUpperCase()} using the draggable`);
+    showMessage({
+      message: `Adjust ${type.toUpperCase()} using the draggable`,
+      type: 'info',
+    });
   };
 
 
   const toggleTakeProfit = () => {
     if (takeProfit) {
       setTakeProfit(null);
-      setMessage('');
       setShowAdjuster(false);
     } else {
       setTakeProfit(getCurrentPrice() * 1.01);
@@ -504,7 +565,6 @@ const GameScreen = ({ route }) => {
   const toggleStopLoss = () => {
     if (stopLoss) {
       setStopLoss(null);
-      setMessage('');
       setShowAdjuster(false);
     } else {
       setStopLoss(getCurrentPrice() * 0.99);
@@ -514,10 +574,11 @@ const GameScreen = ({ route }) => {
 
   const toggleTrailingStop = () => {
     if (trailingStop) {
+      setTrailingStopPct(null);
       setTrailingStop(null);
-      setMessage('');
       setShowAdjuster(false);
     } else {
+      setTrailingStopPct(null);
       setTrailingStop(getCurrentPrice() * 0.9933);
       showMessageAndAdjuster('ts');
     }
@@ -528,18 +589,30 @@ const GameScreen = ({ route }) => {
   return (
     <View style={styles.container}>
       {/* INITIALLYT INVISIBLE */}
-      <NotificationBanner message={message} />
+      
 
       {/* Metrics Modal */}
       <MetricsModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
-        totalROI={totalROI}
-        wins={wins}
-        losses={losses}
-        winRate={winRate}
-        streak={streak}
+        // totalROI={totalROI}
+        // wins={wins}
+        // losses={losses}
+        // winRate={winRate}
+        // streak={streak}
+        trades={trades}
       />
+
+
+      {showConfetti && (
+        <ConfettiCannon
+          count={64}
+          origin={{ x: wHeight*0.2, y: 0 }}
+          fadeOut={true}
+          autoStart={false}
+          ref={confettiRef}
+          fallSpeed={3000} />
+      )}
       
       <View style={styles.headerContainer}>
         <StockInfoComponent
@@ -552,7 +625,7 @@ const GameScreen = ({ route }) => {
           {/* Metrics Button */}
           <View style={styles.statsButtonContainer}>
             <View>
-              <Text style={styles.totalRoiText}>{totalROI.toFixed(2)}%</Text>
+            <Text style={[styles.totalRoiText, {color: totalROI >= 0 ? 'rgba(0,148,32,1)' : 'red'}]}>{totalROI.toFixed(2)}%</Text>
             </View>
             <View>
               <Text style={styles.streakText}>{streak}x</Text>
@@ -573,16 +646,21 @@ const GameScreen = ({ route }) => {
           takeProfit={takeProfit}
           stopLoss={stopLoss}
           trailingStop={trailingStop}
-          height={styles.chartContainer.height}
+          height={styles.chartHeightWidth.height}
+          width={styles.chartHeightWidth.width}
         />
 
         <View style={{ position: 'absolute', top: 20, left: 20 }}>
-          <Text style={{ color: 'grey', fontStyle: 'underline' }}>Length: {candlesAmount}</Text>
+          <Text style={{
+            color: 'darkgrey', fontStyle: 'underline', fontSize: 18, 
+            textDecorationLine: 'underline',
+            
+          }}>Length: {candlesAmount}</Text>
           <Slider
             style={{ flex: 1, height: 30, minWidth: 100, paddingTop: 10 }}
             minimumValue={10}
-            maximumValue={500}
-            step={20}
+            maximumValue={300}
+            step={1}
             value={candlesAmount}
             onValueChange={(value) => setCandlesAmount(value)}
             minimumTrackTintColor="#307ecc"
@@ -591,16 +669,19 @@ const GameScreen = ({ route }) => {
         </View>
 
         
-        <View style={styles.controlMenu}>
+        
+      </View>
+      <View style={styles.controlMenu}>
           
           <View style={{ flexDirection: 'row',justifyContent: 'flex-end' }}>
             <View>
-              <Text style={{ color: 'grey', fontStyle: 'underline', textAlign: 'right' }}>Skip: {skipCandlesAmount}</Text>
+              <Text style={{ color: 'darkgrey', fontStyle: 'underline', fontSize: 18, 
+            textDecorationLine: 'underline',textAlign: 'right', paddingBottom: 10 }}>Skip: {skipCandlesAmount}</Text>
               <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
                 <Slider
                   style={{ flex: 1, height: 30, minWidth: 100 }}
                   minimumValue={6}
-                  maximumValue={60}
+                  maximumValue={100}
                   step={1}
                   value={skipCandlesAmount}
                   onValueChange={(value) => setSkipCandlesAmount(value)}
@@ -618,11 +699,11 @@ const GameScreen = ({ route }) => {
           </View>
 
 
-          <View style={{ flexDirection: 'row' }}>  {/* Parent View with horizontal flexDirection */}
+          <View style={{ flexDirection: 'row', }}>  {/* Parent View with horizontal flexDirection */}
             {/* Trading Action Buttons View */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-around',  }}>
               <TouchableOpacity
-                style={[styles.longshortButton, { backgroundColor: 'green', borderRadius: 50 }]}  
+                style={[styles.longshortButton, { backgroundColor:  'green', borderRadius: 50 }]}  
                 onPress={() => executeTrade('Long')}
               >
                 <Text style={styles.longshortButtonText}>Long </Text>
@@ -681,13 +762,18 @@ const GameScreen = ({ route }) => {
               onClose={handleCloseAdjuster}
             />
           )}
-        </View>
+          
       </View>
+      {/* GLOBAL FLASH MESSAGE COMPONENT INSTANCE */}
+      <FlashMessage position="top" /> {/* <--- here as the last component */}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
 
   tradeActions: {
     flexDirection: 'row',
@@ -702,22 +788,19 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
 
+  chartHeightWidth: {
+    height: wHeight * 0.5,
+    width: wWidth*0.95-5,
+  },
   chartContainer: {
-    width: '100%',
-    flex: 1,
-    backgroundColor: '#ddd',
-    alignItems: 'center',
+    // align left
 
   },
   statsButtonImage: {
     width: 30,
     height: 30
   },
-  container: {
-    flex: 1,
-    alignItems: 'center',
 
-  },
   headerContainer: {
     // side-byside align items, strethced max in between
     flexDirection: 'row',
@@ -757,7 +840,7 @@ controlMenu: {
   elevation: 20,
   position: 'absolute',
   bottom: 0,
-  left: 0,
+  left: 0 ,
   borderRadius: 10,
   backgroundColor: 'rgba(255,255,255,0.5)', // Semi-transparent white background
 },
@@ -814,7 +897,6 @@ controlMenu: {
   totalRoiText: {
     fontWeight: 'bold',
     fontSize: 42,
-    color: 'rgba(0,228,22,1)', // A color that represents money/growth
     textShadowColor: 'rgba(0, 0, 0, 0.25)', // Drop shadow for depth
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,

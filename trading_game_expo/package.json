@@ -16,13 +16,25 @@
     "expo": "~50.0.14",
     "expo-av": "~13.10.6",
     "expo-haptics": "~12.8.1",
+    "expo-linear-gradient": "~12.7.2",
     "expo-status-bar": "~1.11.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-google-charts": "^4.0.1",
     "react-native": "0.73.6",
     "react-native-awesome-slider": "^2.5.2",
+    "react-native-confetti-cannon": "^1.5.2",
+    "react-native-flash-message": "^0.4.2",
+    "react-native-gesture-handler": "~2.14.0",
+    "react-native-gifted-charts": "^1.4.10",
+    "react-native-haptic-feedback": "^2.2.0",
+    "react-native-reanimated": "~3.6.2",
+    "react-native-svg": "^15.1.0",
+    "react-native-uuid": "^2.0.2",
     "react-native-wagmi-charts": "^2.3.2",
-    "react-native-web": "~0.19.6"
+    "react-native-web": "~0.19.6",
+    "react-native-webview": "13.6.4",
+    "victory-native": "^40.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
