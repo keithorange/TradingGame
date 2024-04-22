@@ -232,6 +232,7 @@ console.log(wWidth, wHeight, );
 
   const fastForwardChart = (skipAmount) => {
     let promises = [];
+    let outOfData = false;
 
     // repeat above but not with linear scaling but with log scaling
     const animationDurationMS = 500; // 2 seconds
@@ -241,30 +242,34 @@ console.log(wWidth, wHeight, );
       promises.push(new Promise((resolve) => {
         setTimeout(() => {
           const newIndex = currentChartIndex + i;
-          if (newIndex < chartData.length) {
+          if (newIndex >= chartData.length - MAXIMUM_SKIP_AMOUNT) {
+              outOfData = true;
+              resolve(); // Resolve early to stop further execution
+              return;
+          }
             const newPrice = chartData[newIndex].close;
             setCurrentChartIndex(newIndex);
 
-            // Ensure trailing stop is calculated and updated correctly
-            if (trailingStopPct && position) {
-              const slicedData = chartData.slice(tradeStartIndex, newIndex + 1); // Include current candle in calculation
-              const { isHit, trailingStops, hitPrice } = calculateTrailingStopSequence(slicedData, trailingStopPct, position.direction);
+          // Ensure trailing stop is calculated and updated correctly
+          if (trailingStopPct && position) {
+            const slicedData = chartData.slice(tradeStartIndex, newIndex + 1); // Include current candle in calculation
+            const { isHit, trailingStops, hitPrice } = calculateTrailingStopSequence(slicedData, trailingStopPct, position.direction);
 
-              // Logging for debugging
-              console.log("Processing index", newIndex, "with trailing stop percentage", trailingStopPct, "and direction", position.direction);
-              console.log('Updated Trailing Stops:', trailingStops);
+            // Logging for debugging
+            console.log("Processing index", newIndex, "with trailing stop percentage", trailingStopPct, "and direction", position.direction);
+            console.log('Updated Trailing Stops:', trailingStops);
 
-              // Update the trailing stop to the last calculated value
-              const currentTrailingStop = trailingStops[trailingStops.length - 1];
-              setTrailingStop(currentTrailingStop);
+            // Update the trailing stop to the last calculated value
+            const currentTrailingStop = trailingStops[trailingStops.length - 1];
+            setTrailingStop(currentTrailingStop);
 
-              // Check if the trailing stop was hit
-              if (isHit) {
-                console.log('Trailing Stop Hit at', hitPrice, 'at index', newIndex);
-                setPosition({ ...position, exitPrice: hitPrice, exitReason: 'trailing stop hit' });
-                resolve(); // Resolve the promise early due to stop hit
-                return;
-              }
+            // Check if the trailing stop was hit
+            if (isHit) {
+              console.log('Trailing Stop Hit at', hitPrice, 'at index', newIndex);
+              setPosition({ ...position, exitPrice: hitPrice, exitReason: 'trailing stop hit' });
+              resolve(); // Resolve the promise early due to stop hit
+              return;
+            
             }
             resolve();
           }
@@ -273,7 +278,12 @@ console.log(wWidth, wHeight, );
     }
 
     return Promise.all(promises).then(() => {
-      console.log("Fast forward complete. Current chart index:", currentChartIndex);
+      if (outOfData) {
+            showFlashMessage("Reached the end of chart data, refreshing...", "warning");
+            refreshNewStock(); // Refresh or adjust data logic
+        } else {
+            console.log("Fast forward complete. Current chart index:", currentChartIndex);
+        }
     });
   };
 
@@ -531,16 +541,24 @@ console.log(wWidth, wHeight, );
     }
   }
 
+  const MAXIMUM_SKIP_AMOUNT = 100;
+
   const refreshNewStock = () => {
     // get new stock
-    setSelectedStock(getRandomStockOhlc().stock);
+    const newStock = getRandomStockOhlc().stock;
+    const data = chartData.length;  // Assuming chartData is the data array for the new stock
+    const randomIndex = Math.floor(Math.random() * (data.length - MAXIMUM_SKIP_AMOUNT));
 
-    // Fetch a new stock and reset the chart
-    const randomIndex = Math.floor(Math.random() * (chartData.length - candlesAmount));
-    setCurrentChartIndex(randomIndex);
-
+    if (randomIndex > data.length - MAXIMUM_SKIP_AMOUNT) {
+      // Show flash message and refresh again
+      showFlashMessage("Out of data, refreshing...", "warning");
+      refreshNewStock();  // Recursive call to get a new valid stock
+    } else {
+      setSelectedStock(newStock);
+      setCurrentChartIndex(randomIndex);
+    }
   }
-  
+
   const showMessageAndAdjuster = (type) => {
     setTpslMode(type);
     setShowAdjuster(true);
@@ -680,7 +698,7 @@ console.log(wWidth, wHeight, );
                 <Slider
                   style={{ flex: 1, height: 30, minWidth: 100 }}
                   minimumValue={6}
-                  maximumValue={100}
+                  maximumValue={MAXIMUM_SKIP_AMOUNT}
                   step={1}
                   value={skipCandlesAmount}
                   onValueChange={(value) => setSkipCandlesAmount(value)}
