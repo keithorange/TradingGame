@@ -336,13 +336,12 @@ console.log(wWidth, wHeight, );
 
 
   function displayResult(trade) {
-    let resultMessage = trade.isWin ? `💵 Win: ${trade.roi.toFixed(2)}%` : `🔻 Loss: ${trade.roi.toFixed(2)}%`;
-    resultMessage += ` via ` + trade.exitReason
+    let resultMessage = trade.isWin ? `💵 Won! ${trade.roi.toFixed(2)}%` : `🔻 Loss ${trade.roi.toFixed(2)}%`;
 
 
     showMessage({
       message: resultMessage,
-      description: `Entry: ${trade.entryPrice.toFixed(2)} -> Exit: ${trade.exitPrice.toFixed(2)} = ${trade.roi.toFixed(2)}%  (${trade.duration} candles)`,
+      description: trade.exitReason + ' returned ' + `${trade.roi.toFixed(2)}%` + ' after ' + `${trade.duration} candles`,
       type: trade.isWin ? 'success' : 'danger',
     })
   }

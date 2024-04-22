@@ -9,12 +9,12 @@ const TradeItem = ({ item }) => {
         ROI: {item.roi.toFixed(2)}%
           </Text>
         <Text style={styles.tradeDetails}>Exit Reason: {item.exitReason}</Text>
-      <Text style={styles.tradeDetails}>Entry Price: ${item.entryPrice.toFixed(2)}</Text>
-      <Text style={styles.tradeDetails}>Exit Price: ${item.exitPrice.toFixed(2)}</Text>
-      <Text style={styles.tradeDetails}>Trade ID: {item.id}</Text>
-      <Text style={styles.tradeDetails}>Duration: {item.duration} days</Text>
-      <Text style={styles.tradeDetails}>Entry Date: {item.entryDate}</Text>
-      <Text style={styles.tradeDetails}>Exit Date: {item.exitDate}</Text>
+        <Text style={styles.tradeDetails}>Duration: {item.duration} days</Text>
+      {/* <Text style={styles.tradeDetails}>Entry Price: ${item.entryPrice.toFixed(2)}</Text>
+      <Text style={styles.tradeDetails}>Exit Price: ${item.exitPrice.toFixed(2)}</Text> */}
+      {/* <Text style={styles.tradeDetails}>Trade ID: {item.id}</Text> */}
+      {/* <Text style={styles.tradeDetails}>Entry Date: {item.entryDate}</Text>
+      <Text style={styles.tradeDetails}>Exit Date: {item.exitDate}</Text> */}
     </View>
   );
 };
@@ -34,18 +34,18 @@ const MetricsModal = ({ visible, onClose, trades }) => {
         { value: winLossData.losses, label: 'Losses', color: 'red' }
     ];
 
+    const barData = trades.map(trade => ({
+        value: trade.roi,
+        // label: trade.roi.toFixed(2),
+        frontColor: trade.roi >= 0 ? 'green' : 'red',
+    }));
+
     // Charts setup
     const sortedTrades = trades.sort((a, b) => b.roi - a.roi);
     const pyramidData = sortedTrades.map(trade => ({
         left: trade.roi < 0 ? Math.abs(trade.roi) : 0,
         right: trade.roi > 0 ? trade.roi : 0,
-        // yAxisLabel: trade.roi.toFixed(2)
-    }));
-
-    const barData = trades.map(trade => ({
-        value: trade.roi,
-        // label: trade.roi.toFixed(2),
-        frontColor: trade.roi >= 0 ? 'green' : 'red',
+        yAxisLabel: trade.roi.toFixed(2)
     }));
     const cumulativeData = barData.reduce((acc, current, index) => {
         const cumulativeValue = index === 0 ? current.value : acc[index - 1].value + current.value;
@@ -97,6 +97,7 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                                 <PopulationPyramid
                                     data={pyramidData}
                                     showMidAxis
+                                    
                                     midAxisLabelFontStyle='italic'
                                     midAxisLabelColor='gray'
                                     midAxisLeftColor='red'
@@ -105,6 +106,7 @@ const MetricsModal = ({ visible, onClose, trades }) => {
 
                                 <FlatList
                                     data={trades}
+                                    height={'20%'}
                                     keyExtractor={(item) => item.id.toString()}
                                     renderItem={({ item }) => <TradeItem item={item} />}
                                     contentContainerStyle={styles.listContainer}
