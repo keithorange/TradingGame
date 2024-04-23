@@ -24,17 +24,17 @@ const TradeItem = ({ item }) => {
 
 const MetricsModal = ({ visible, onClose, trades }) => {
   
-   trades = [
-    { id: 1, roi: 5, isWin: true, type: 'Long', exitReason: 'Profit Target', duration: 5 },
-    { id: 2, roi: -2, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 3 },
-    { id: 3, roi: 1, isWin: true, type: 'Long', exitReason: 'Profit Target', duration: 7 },
-     { id: 4, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
+  //  trades = [
+  //   { id: 1, roi: 5, isWin: true, type: 'Long', exitReason: 'Profit Target', duration: 5 },
+  //   { id: 2, roi: -2, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 3 },
+  //   { id: 3, roi: 1, isWin: true, type: 'Long', exitReason: 'Profit Target', duration: 7 },
+  //    { id: 4, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
     
-     { id: 5, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
-     { id: 6, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
-     { id: 7, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
-     { id: 8, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
-  ]
+  //    { id: 5, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
+  //    { id: 6, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
+  //    { id: 7, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
+  //    { id: 8, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
+  // ]
 
   
   const winLossData = {
