@@ -851,7 +851,8 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     // align left
-
+    flex: 1,
+    
   },
   statsButtonImage: {
     width: 30,
