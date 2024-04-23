@@ -112,7 +112,7 @@ const activePathOhlc = ohlc.map((entry, index) => {
      <View style={styles.chart}>
       <CandlestickChart.Provider data={activePathOhlc}>
         <CandlestickChart height={height} width={width}>
-          <CandlestickChart.Candles useAnimations={false} positiveColor={"rgba(0,255,0,1)"} negativeColor={"#FF99DD"} /> 
+          <CandlestickChart.Candles useAnimations={false} positiveColor={"rgba(0,255,0,1)"} negativeColor={"#ee204d"} /> 
           <CandlestickChart.Crosshair
             color={"rgba(250,99,2,0)"}
             onCurrentXChange={onPressChartFn}>
@@ -175,7 +175,7 @@ const activePathOhlc = ohlc.map((entry, index) => {
               {trailingStop && (
                 <LineChart.HorizontalLine
                   at={{ value: trailingStop }}
-                  color="#9C27B0"  // Color for Trailing Stop
+                  color="rgba(255,153,221,1)"  // Color for Trailing Stop
                   label={`TS: ${trailingStop}`}
                 />
               )}

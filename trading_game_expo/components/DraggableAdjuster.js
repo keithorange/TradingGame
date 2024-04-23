@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, PanResponder } from 'react-native';
+import { View, Text, StyleSheet, PanResponder, TouchableOpacity } from 'react-native';
+
 
 const DraggableAdjuster = ({ onAdjust, onClose }) => {
   let lastY = 0; // Keep track of the last Y position
@@ -23,7 +24,7 @@ const DraggableAdjuster = ({ onAdjust, onClose }) => {
   });
 
 return (
-  <View style={{flex: 1}} onPress={onClose}>
+  <TouchableOpacity style={{flex: 1, alignItems: 'center', justifyContent: "center"}} onPress={onClose}>
     <View style={styles.overlay} {...panResponder.panHandlers}>
       <View style={styles.draggableContainer}>
         <View pointerEvents="none">
@@ -31,7 +32,7 @@ return (
         </View>
       </View>
     </View>
-  </View>
+  </TouchableOpacity>
 );
 };
 
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
     width: '80%',  // Static size based on parent container
     height: 400,  // Static height
     borderRadius: 10,  // Slightly rounded corners
-    backgroundColor: '#fff',
+    backgroundColor: rgba(255,213,209,0.5),
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 6,  // Shadow for Android
