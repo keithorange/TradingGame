@@ -112,7 +112,7 @@ const activePathOhlc = ohlc.map((entry, index) => {
      <View style={styles.chart}>
       <CandlestickChart.Provider data={activePathOhlc}>
         <CandlestickChart height={height} width={width}>
-          <CandlestickChart.Candles useAnimations={false} positiveColor={"rgba(0,255,0,1)"} negativeColor={"rgba(252,86,87,1)"} /> 
+          <CandlestickChart.Candles useAnimations={false} positiveColor={"rgba(0,255,0,1)"} negativeColor={"#ffb2d0"} /> 
           <CandlestickChart.Crosshair
             color={"rgba(250,99,2,0)"}
             onCurrentXChange={onPressChartFn}>
