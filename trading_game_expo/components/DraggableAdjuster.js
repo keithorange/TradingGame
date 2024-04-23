@@ -18,15 +18,17 @@ const DraggableAdjuster = ({ onAdjust, onClose }) => {
     console.log('lastY', lastY);
     },
     onPanResponderRelease: () => {
-      onClose(); // Close the adjuster when released
+      //onClose(); // Close the adjuster when released
     }
   });
 
- return (
-  <View style={styles.overlay} {...panResponder.panHandlers}>
-    <View style={styles.draggableContainer}>
-      <View pointerEvents="none">
-        <Text style={styles.draggableText}>⬆️⬇️</Text>
+return (
+  <View style={{flex: 1}} onPress={onClose}>
+    <View style={styles.overlay} {...panResponder.panHandlers}>
+      <View style={styles.draggableContainer}>
+        <View pointerEvents="none">
+          <Text style={styles.draggableText}>⬆️⬇️</Text>
+        </View>
       </View>
     </View>
   </View>
