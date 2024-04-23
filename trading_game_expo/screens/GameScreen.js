@@ -694,7 +694,7 @@ console.log(wWidth, wHeight, );
             maximumValue={300}
             step={1}
             value={candlesAmount}
-            onValueChange={setCandlesAmount}
+            onSlidingComplete={setCandlesAmount}
             minimumTrackTintColor="#ffa801"
                   maximumTrackTintColor="#d2dae2"
           />
@@ -716,7 +716,7 @@ console.log(wWidth, wHeight, );
                   maximumValue={MAXIMUM_SKIP_AMOUNT}
                   step={1}
                   value={skipCandlesAmount}
-                  onValueChange={setSkipCandlesAmount}
+                  onSlidingComplete={setSkipCandlesAmount}
                   minimumTrackTintColor="#ffa801"
                   maximumTrackTintColor="#d2dae2"
                 />
