@@ -22,24 +22,75 @@ height, width
     tradeDuration = currentIndex - tradeStartIndex;
   }
 
-  const normalizedLastIndex = lineData.length - 1
-  const normalizedTradeStartIndex = normalizedLastIndex - tradeDuration;
 
-  
 
   const roi = ((currPrice - tradeStartPrice) / tradeStartPrice) * 100.0;
 
   const isWeb = Platform.OS === 'web'
 
 
+
+  const normalizedTradeStartIndex = tradeStartIndex - (currentIndex - ohlc.length);
+  
+const activePathOhlc = ohlc.map((entry, index) => {
+  console.log('entry', entry, 'index', index);
+  const mean = (entry.open + entry.high + entry.low + entry.close) / 4;
+
+  
+  // Function to create a flattened candlestick
+  const flatCandle = {
+    ...entry,
+    open: mean,
+    high: mean,
+    low: mean,
+    close: mean,
+  };
+
+  // Flatten the candles before the trade starts or when there's no active trade
+  if (index < normalizedTradeStartIndex-1 || !tradeStartIndex) {
+    return   flatCandle 
+  }
+
+  // Return normal candles after the trade has started
+  return entry;
+});
+
+
+  // Mapping function to either return normal candles or flattened candles based on the index
+  const processedOhlc = ohlc.map((entry, index) => {
+    console.log('index', index, 'normalizedTradeStartIndex', normalizedTradeStartIndex, 'tradeDuration', tradeDuration, )
+
+    // Calculate the mean of the candlestick values
+    const mean = (entry.open + entry.high + entry.low + entry.close) / 4;
+
+    // Function to create a flattened candlestick
+    const flatCandle = {
+      ...entry,
+      open: mean,
+      high: mean,
+      low: mean,
+      close: mean,
+    };
+
+    console.log()
+
+    // Flatten the candles past the currentIndex
+    if ((tradeDuration > 0 )&&(index > normalizedTradeStartIndex)) {
+      return flatCandle;
+    }
+
+    // Return normal candlestick data for those before or at the currentIndex
+    return entry;
+  });
   return (
     <View style={styles.container}>
 
       <View style={styles.chart}>
 
-        
-        {ohlc.length && (
-          <CandlestickChart.Provider data={ohlc}>
+        {/* Bottom red greren candlestick chart */}
+
+
+          <CandlestickChart.Provider data={processedOhlc}>
             <CandlestickChart height={height} width={width}>
               <CandlestickChart.Candles useAnimations={false} />  {/* Disable animations */}
               <CandlestickChart.Crosshair
@@ -54,9 +105,26 @@ height, width
             <CandlestickChart.PriceText type="close" />
             <CandlestickChart.DatetimeText /> */}
           </CandlestickChart.Provider>
-        )}
+
       </View>
 
+
+     <View style={styles.chart}>
+      <CandlestickChart.Provider data={activePathOhlc}>
+        <CandlestickChart height={height} width={width}>
+          <CandlestickChart.Candles useAnimations={false} positiveColor={"rgba(0,255,0,1)"} negativeColor={"#FF99DD"} /> 
+          <CandlestickChart.Crosshair
+            color={"rgba(250,99,2,0)"}
+            onCurrentXChange={onPressChartFn}>
+          </CandlestickChart.Crosshair>
+          
+        </CandlestickChart>
+        
+      </CandlestickChart.Provider>
+      </View > 
+    
+
+      {/* ON TOP linegraph with lines (kinda glitchy) */}
       <View style={styles.overlayChart}>
         {lineData.length > 0 && (
         <LineChart.Provider data={lineData}>
@@ -65,14 +133,19 @@ height, width
               isTransitionEnabled: false,
               yGutter: 0,
               animateOnMount: false,
-              animationDuration: 0.001,
+              animationDuration: 0,
 
               //curve: d3Shape.curveNatural
             }}>
               {/* Dots for path */}
-              <LineChart.Dot color="orange" at={normalizedLastIndex} hasPulse pulseBehaviour={"always"} />
-              {/* Highlight path */}
-              <LineChart.Highlight color="rgb(240,240,240,0.4)" from={normalizedTradeStartIndex} to={normalizedLastIndex} />
+              
+                <LineChart.Dot color="orange" at={lineData.length-1}
+                hasPulse pulseBehaviour={"always"} />
+
+              {/* <LineChart.Highlight color="orange" to={lineData.length - 1} from={(lineData.length - 1) - tradeDuration} /> */}
+
+
+
               {/* Horiz lines for buy/sell */}
               {tradeDuration > 0 && (
                 <LineChart.HorizontalLine at={{ value: currPrice }}

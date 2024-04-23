@@ -239,7 +239,7 @@ console.log(wWidth, wHeight, );
     let promises = [];
 
     // repeat above but not with linear scaling but with log scaling
-    const animationDurationMS = 500; // 2 seconds
+    const animationDurationMS = 400; // 2 seconds
     const skipTimePerCandle = animationDurationMS / (Math.log(skipAmount + 1)+1)
 
     // add 1 to skipAmount so we see final candle!
@@ -731,8 +731,7 @@ console.log(wWidth, wHeight, );
           </View>
 
 
-          <View style={{ flexDirection: 'row', }}>  {/* Parent View with horizontal flexDirection */}
-            {/* Trading Action Buttons View */}
+          <View style={{ flexDirection: 'row', }}> 
             <View style={{ flexDirection: 'row', justifyContent: 'space-around',  }}>
               <TouchableOpacity
                 style={[styles.longshortButton, { backgroundColor:  '#4cd137', borderRadius: 50 }]}  
