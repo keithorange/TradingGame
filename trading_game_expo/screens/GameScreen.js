@@ -315,12 +315,16 @@ console.log(wWidth, wHeight, );
 
   useEffect(() => {
     // if insufficnet candles, notify and fresh new chart
-      if (currentChartIndex + MAX_SKIP_AMOUNT >= chartData.ohlcData.length + 1) {
+    if (currentChartIndex + MAX_SKIP_AMOUNT >= chartData.ohlcData.length + 1) {
+        
+      // dont show on first time
+      if (position) {
+
         showMessage({
           message: 'Out of candles! Refreshing New Chart!',
           type: 'warning',
         })
-
+      }
         refreshNewStock()
         return
       }
@@ -667,7 +671,7 @@ console.log(wWidth, wHeight, );
         <StockInfoComponent
           selectedStock={selectedStock}
           onSelectStock={setSelectedStock}
-          stockNames={Object.keys(ohlcvDataSets)}
+          allStockData={ohlcvDataSets.map(({ticker, humanName, category}) => ({ticker, humanName, category}))}
           onRefresh={refreshNewStock}
         />
 

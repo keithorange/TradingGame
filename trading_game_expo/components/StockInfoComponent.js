@@ -1,13 +1,34 @@
 import React, { useState } from 'react';
-import { Image, View, Text, TouchableOpacity, StyleSheet, Modal, FlatList, ScrollView } from 'react-native';
+import { Image, View, Text, TouchableOpacity, StyleSheet, Modal, FlatList, ScrollView, Dimensions } from 'react-native';
 
-const StockInfoComponent = ({ selectedStock, onSelectStock, stockNames, onRefresh }) => {
+const StockInfoComponent = ({ selectedStock, onSelectStock, allStockData, onRefresh }) => {
     const [dropdownVisible, setDropdownVisible] = useState(false);
 
     const handleSelectStock = (stock) => {
         setDropdownVisible(false);
-        onSelectStock(stock);
+        onSelectStock(stock.ticker);
     };
+
+    const categorizedData = allStockData.reduce((acc, item) => {
+        const categoryUpper = item.category.toUpperCase();
+        acc[categoryUpper] = acc[categoryUpper] || [];
+        acc[categoryUpper].push(item);
+        return acc;
+    }, {});
+
+    const renderCategory = ({ item }) => (
+        <View style={styles.categoryContainer}>
+            <Text style={styles.categoryHeader}>{item.category}</Text>
+            {item.data.map((stock) => (
+                <TouchableOpacity key={stock.ticker} onPress={() => handleSelectStock(stock)}>
+                    <View style={styles.dropdownItem}>
+                        <Text style={styles.dropdownTextNormal}>{stock.humanName} </Text>
+                        <Text style={styles.dropdownTextBold}>({stock.ticker})</Text>
+                    </View>
+                </TouchableOpacity>
+            ))}
+        </View>
+    );
 
     return (
         <View style={styles.container}>
@@ -28,32 +49,26 @@ const StockInfoComponent = ({ selectedStock, onSelectStock, stockNames, onRefres
                         setDropdownVisible(!dropdownVisible);
                     }}
                 >
-                    <View style={styles.modalView}>
+                    <ScrollView
+                        style={styles.modalView}
+                        contentContainerStyle={styles.scrollViewContent} // Ensure this is defined in your styles
+                    >
                         <FlatList
-                            data={stockNames}
-                            keyExtractor={(item) => item}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity onPress={() => handleSelectStock(item)}>
-                                    <View style={styles.dropdownItem}>
-                                        <Text style={styles.dropdownText}>{item}</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            )}
+                            data={Object.keys(categorizedData).map(key => ({ category: key, data: categorizedData[key] }))}
+                            keyExtractor={(item) => item.category}
+                            renderItem={renderCategory}
                         />
-                    </View>
+                    </ScrollView>
+
                 </Modal>
             )}
-
         </View>
     );
 };
 
-// import dimensions as wWidth and wHeight
-import { Dimensions } from 'react-native';
+const { width: wWidth } = Dimensions.get('window');
 
-const { width: wWidth, height: wHeight } = Dimensions.get('window');
-
-const LIGHT_MODE = false
+const LIGHT_MODE = false;
 
 const styles = StyleSheet.create({
     container: {
@@ -70,7 +85,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
-        backgroundColor: LIGHT_MODE ?'#4b4b4b' : '#d1d8e0',
+        backgroundColor: LIGHT_MODE ? '#4b4b4b' : '#d1d8e0',
     },
     infoContainer: {
         flexDirection: 'row',
@@ -81,8 +96,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         textDecorationLine: 'underline',
-        // color
-        color: LIGHT_MODE ? 'white' : 'black',
+        color: 'black',
     },
     refreshButton: {
         width: 40,
@@ -100,7 +114,6 @@ const styles = StyleSheet.create({
         margin: 20,
         borderRadius: 20,
         padding: 35,
-        alignItems: "center",
         backgroundColor: LIGHT_MODE ? '#d1d8e0' : '#4b4b4b',
         shadowColor: "#000",
         shadowOffset: {
@@ -112,19 +125,18 @@ const styles = StyleSheet.create({
         elevation: 5,
         width: '100%',
     },
+    scrollViewContent: {
+        alignItems: "center", // This was moved from modalView if it was originally there
+    },
     dropdownItem: {
-        flex: 1,
+        flexDirection: 'row',
         padding: 20,
         marginTop: 5,
         borderColor: 'gray',
         borderWidth: 2,
-        fontSize: 24,
-        color: 'black',
         borderRadius: 10,
         alignItems: 'center',
-        width: wWidth*0.9,
-        
-        // make nice elevated card look
+        width: wWidth * 0.9,
         shadowColor: "#000",
         shadowOffset: {
             width: 0,
@@ -133,13 +145,32 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
-
-
     },
-    dropdownText: {
-        fontSize: 24,
-        color: LIGHT_MODE ? 'black' : 'white',
+    dropdownTextNormal: {
+        fontSize: 18,
+        fontWeight: 'normal',
+        color: 'black'
+    }
+    ,dropdownTextBold: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'black',
+    },
+    categoryContainer: {
+        padding: 10,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 10,
+        marginBottom: 10,
+    },
+    categoryHeader: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: 'black',
+        marginBottom: 5,
+        textTransform: 'uppercase', // Categories in uppercase
+        textDecorationLine: 'underline'
     }
 });
+
 
 export default StockInfoComponent;
