@@ -846,7 +846,7 @@ const styles = StyleSheet.create({
   },
 
   chartHeightWidth: {
-    height: wHeight * 0.5,
+    height: wHeight * 0.8,
     width: wWidth*0.95-5,
   },
   chartContainer: {
