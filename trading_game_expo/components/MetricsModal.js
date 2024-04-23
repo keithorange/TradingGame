@@ -58,17 +58,17 @@ const MetricsModal = ({ visible, onClose, trades }) => {
 
     // Accumulate wins and losses for long and short trades
     if (trade.isWin) {
-      if (trade.type === 'Long') {
+      if (trade.direction === 'Long') {
         winLossData.winsLong++;
-      } else if (trade.type === 'Short') {
+      } else if (trade.direction === 'Short') {
         winLossData.winsShort++;
       }
       winLossData.wins++;
 
     } else {
-      if (trade.type === 'Long') {
+      if (trade.direction === 'Long') {
         winLossData.lossesLong++;
-      } else if (trade.type === 'Short') {
+      } else if (trade.direction === 'Short') {
         winLossData.lossesShort++;
       }
       winLossData.losses++;
@@ -133,26 +133,29 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                                 <Text style={styles.modalText}>Total ROI: {winLossData.totalROI.toFixed(2)}%</Text>
                                 <Text style={styles.modalText}>Wins: {winLossData.wins} Losses: {winLossData.losses} Win Rate: {winLossData.winrate.toFixed(2)}%</Text>
 
-                  <Text style={styles.chartTitle}>Total ROI Over Time</Text> 
-                                <BarChart
-                                    height={height*0.1}
-                                    width={width*0.4}
-                                    data={cumBarData}
-                                    round={100}
-                                    showGradient={false}
-                                    initialSpacing={5}
-                                    />
+                  
 
-                            <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '100%',}}>
+                            <View>
+                                <Text style={styles.chartTitle}>Win/Loss Distribution</Text>
                                 <PieChart
-                                    height={height*0.1}
-                                    width={width*0.4}
-                                    data={pieChartData}
-                                    donut
-                                    innerRadius={60}
-                                    centerLabelComponent={() => <Text style={{ fontSize: 20 }}>Win/Loss</Text>}
-                                />
+                                  height={height * 0.1}
+                                  width={width * 0.4}
+                                  data={pieChartData}
+                                  />
 
+                                 <Text style={styles.chartTitle}>Total ROI Over Time</Text> 
+                                  <BarChart
+                                      height={height*0.1}
+                                      width={width*0.4}
+                                      data={cumBarData}
+                                      round={100}
+                                      showGradient={false}
+                                      initialSpacing={5}
+                                      />
+
+          
+
+                                <Text style={styles.chartTitle}>Trade Profits</Text> 
                                 <BarChart
                                     height={height*0.1}
                                     width={width*0.4}
@@ -161,22 +164,19 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                                     showGradient={false}
                                     initialSpacing={5}
                                     />
-                                </View>
-                                
-                  
-                                              
-                            <View >
-                                <FlatList
-                                    data={trades}
-                                    height={'20%'}
-                                    keyExtractor={(item) => item.id.toString()}
-                                    renderItem={({ item }) => <TradeItem item={item} />}
-                                    contentContainerStyle={styles.listContainer}
-                                    ListHeaderComponent={() => <Text style={styles.listHeader}>Trade Details</Text>}
-                                    />
-                                     </View>
+
+
+                              <FlatList
+                                  data={trades}
+                                  height={'20%'}
+                                  keyExtractor={(item) => item.id.toString()}
+                                  renderItem={({ item }) => <TradeItem item={item} />}
+                                  contentContainerStyle={styles.listContainer}
+                                  ListHeaderComponent={() => <Text style={styles.listHeader}>Trade Details</Text>}
+                                  />
                             
-                            </View>
+                        </View>
+                    </View>
                         )
                     }
                     {(trades.length === 0) && (
