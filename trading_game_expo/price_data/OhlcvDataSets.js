@@ -1,92 +1,52 @@
-// // ohlcvDataSets.js
+// Dynamic import setup
+//const priceDataContext = require.context('../price_data', true, /\.js$/);
 
-// import BtcOhlcvData from '../price_data/BtcOhlcvData';
-// import EthOhlcvData from '../price_data/EthOhlcvData';
-// import AaplOhlcvData from '../price_data/AaplOhlcvData';
-
-// const ohlcvDataSets = {
-//   BTC: BtcOhlcvData,
-//   ETH: EthOhlcvData,
-//   AAPL: AaplOhlcvData,
-// };
-
-// export default ohlcvDataSets;
+// same thing but ignore 'OhlcvDataSets.js' 
+const priceDataContext = require.context('../price_data', true, /^\.\/(?!OhlcvDataSets\.js$).*\.js$/);
 
 // Helper function to add a timestamp key by converting date to timestamp
 function addTimestamps(data) {
-    return data.map(entry => {
-        const timestamp = new Date(entry.date).getTime();
-        return {
-            ...entry,
-            timestamp: isNaN(timestamp) ? null : timestamp  // Ensuring only valid timestamps are added, otherwise null or handle differently
-        };
-    });
+    return data.map(entry => ({
+        ...entry,
+        timestamp: new Date(entry.date).getTime() || null
+    }));
 }
 
 function addDefaultValue(data) {
-    let vals = data.map(entry => ({
+    return data.map(entry => ({
         ...entry,
-        value: (data.high + data.low + data.open + data.close) / 4
+        value: (entry.high + entry.low + entry.open + entry.close) / 4
     }));
-    // last value uses .close 
-    vals[vals.length - 1].value = data.close;
-    return vals;
 }
 
 function numbersToFloat(data) {
     return data.map(entry => ({
         ...entry,
-        open: typeof entry.open === 'string' ? parseFloat(entry.open) : entry.open,
-        high: typeof entry.high === 'string' ? parseFloat(entry.high) : entry.high,
-        low: typeof entry.low === 'string' ? parseFloat(entry.low) : entry.low,
-        close: typeof entry.close === 'string' ? parseFloat(entry.close) : entry.close,
-        // volume: typeof entry.volume === 'string' ? parseFloat(entry.volume) : entry.volume,
+        open: parseFloat(entry.open),
+        high: parseFloat(entry.high),
+        low: parseFloat(entry.low),
+        close: parseFloat(entry.close)
     }));
 }
 
-import aaplOhlcvData from "../price_data/aapl_data"
-import btcOhlcvData from "../price_data/btc_data"
-import ethOhlcvData from "../price_data/eth_data"
-import goldOhlcvData from "../price_data/gold_data"
-import jpmOhlcvData from "../price_data/jpm_data"
-import spyOhlcvData from "../price_data/spy_data"
-import dogeOhlcvData from "../price_data/doge_data"
-import gasOhlcvData from "../price_data/gas_data"
-import googlOhlcvData from "../price_data/googl_data"
-import nflxOhlcvData from "../price_data/nflx_data"
-import tslaOhlcvData from "../price_data/tsla_data"
+console.log("priceDataContext.keys(): ", priceDataContext.keys());
 
+// Transform imported modules into a list of enhanced objects
+const ohlcvDataList = priceDataContext.keys().map(path => {
+    const { category, ticker, humanName, ohlcData } = priceDataContext(path);
 
-const originalOhlcvDataSets = {
-    BTC: btcOhlcvData,
-    ETH: ethOhlcvData,
-    DOGE: dogeOhlcvData,
-    SPY: spyOhlcvData,
-    AAPL: aaplOhlcvData,
-    JPM: jpmOhlcvData,
-    GOOGL: googlOhlcvData,
-    NFLX: nflxOhlcvData,
-    TSLA: tslaOhlcvData,
-    Gas: gasOhlcvData,
-    Gold: goldOhlcvData,
-};
+    if (!category || !ticker || !humanName || !ohlcData) {
+        console.error(`Invalid data format for ${path}`);
+        return null;
+    }
 
-// Transform each dataset to apply addTimestamps and addDefaultValue
-const ohlcvDataSets = Object.keys(originalOhlcvDataSets).reduce((acc, key) => {
-    acc[key] = addTimestamps(originalOhlcvDataSets[key]);
-    return acc;
-}, {});
+    return {
+        category,
+        ticker,
+        humanName,
+        ohlcData: addDefaultValue(numbersToFloat(addTimestamps(ohlcData)))
+    };
 
-// ensure all are floats
-Object.keys(ohlcvDataSets).forEach(key => {
-    ohlcvDataSets[key] = numbersToFloat(ohlcvDataSets[key]);
-});
+}).filter(item => item !== null); // Filter out any null entries
 
-// add default value
-Object.keys(ohlcvDataSets).forEach(key => {
-    ohlcvDataSets[key] = addDefaultValue(ohlcvDataSets[key]);
-});
-
-
-
-export default ohlcvDataSets;
+export default ohlcvDataList;

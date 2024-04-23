@@ -17,12 +17,18 @@ import MetricsModal from '../components/MetricsModal';  // Make sure this path i
 import ohlcvDataSets from '../price_data/OhlcvDataSets';  // Adjust the path as needed
 
 const getRandomStockOhlc = () => {
-  let stock;
-  let keys = Object.keys(ohlcvDataSets);
-  let randomKey = keys[Math.floor(Math.random() * keys.length)];
-  stock = randomKey;
-  ohlc = ohlcvDataSets[stock];
-  return { stock, ohlc };
+  let randomIdx = Math.floor(Math.random() * ohlcvDataSets.length);
+  let randomChoiceData = ohlcvDataSets[randomIdx];
+
+  const { category, ticker, humanName, ohlcData }= randomChoiceData;
+
+  // renaming cuz deprecated dummy
+  //const ohlc = ohlcData;
+  const stock = ticker;
+  // const humanName = humanName;
+  // const category = category;
+
+  return { stock, ohlcData, humanName, category };
 }
 
 // get height width from dimeniosn
@@ -36,7 +42,7 @@ console.log(wWidth, wHeight, );
 
   const [selectedStock, setSelectedStock] = useState(getRandomStockOhlc().stock);
 
-  const [chartData, setChartData] = useState([]);
+    const [chartData, setChartData] = useState({stock: '', ohlcData: [], humanName: '', category: ''});
   const [candlesAmount, setCandlesAmount] = useState(120);  // Number of candles to display [default to MAX_CANDLES
   const [currentChartIndex, setCurrentChartIndex] = useState(0);  // Control the display index for the chart
   const [tradeStartIndex, setTradeStartIndex] = useState(null);  // Track where the trade starts
@@ -143,7 +149,7 @@ console.log(wWidth, wHeight, );
   };
 
   function getCurrentPrice() {
-    return chartData[currentChartIndex].close;
+    return chartData.ohlcData[currentChartIndex].close;
   }
 
 
@@ -151,7 +157,8 @@ console.log(wWidth, wHeight, );
   async function getChartData(stock) {
     // Fetch OHLC data for the selected stock
     // filler function for now
-    return ohlcvDataSets[stock]
+
+    return ohlcvDataSets.find(item => item.ticker === stock);
   
   }
 
@@ -162,11 +169,16 @@ console.log(wWidth, wHeight, );
 }, []);
 
   async function fetchChartData() {
+      // const data = await getChartData(selectedStock);
+      // setChartData(data);
       const data = await getChartData(selectedStock);
+      const { stock, ohlcData } = data
       setChartData(data);
-
+    
+      console.log("fetching chart data for", selectedStock, "with", ohlcData.length, "candles")
+    
       // Set a random starting point for the chart display
-      const randomIndex = Math.floor(Math.random() * (data.length - candlesAmount - MAXIMUM_SKIP_AMOUNT+10));
+      const randomIndex = Math.floor(Math.random() * (ohlcData.length - candlesAmount - MAXIMUM_SKIP_AMOUNT+10));
       setCurrentChartIndex(randomIndex);
   }
     
@@ -248,13 +260,12 @@ console.log(wWidth, wHeight, );
       promises.push(new Promise((resolve) => {
         setTimeout(() => {
           const newIndex = currentChartIndex + i;
-          if (newIndex < chartData.length) {
-            const newPrice = chartData[newIndex].close;
+          if (newIndex < chartData.ohlcData.length) {
             setCurrentChartIndex(newIndex);
 
             // Ensure trailing stop is calculated and updated correctly
             if (trailingStopPct && position) {
-              const slicedData = chartData.slice(tradeStartIndex, newIndex + 1); // Include current candle in calculation
+              const slicedData = chartData.ohlcData.slice(tradeStartIndex, newIndex + 1); // Include current candle in calculation
               const { isHit, trailingStops, hitPrice } = calculateTrailingStopSequence(slicedData, trailingStopPct, position.direction);
 
               // Logging for debugging
@@ -289,7 +300,7 @@ console.log(wWidth, wHeight, );
     if (!position) {
       const skipAmount = skipCandlesAmount;
       const tradeIndex = currentChartIndex;
-      const trade = handleTradeWithConditions(direction, chartData, tradeIndex, skipAmount);
+      const trade = handleTradeWithConditions(direction, chartData.ohlcData, tradeIndex, skipAmount);
 
       setTradeStartIndex(tradeIndex);
       setPosition(trade);
@@ -298,16 +309,13 @@ console.log(wWidth, wHeight, );
   }
 
 
-
+    const MAX_SKIP_AMOUNT = 200;
 
   // LINKED TO THE useEffect HOOK BELOW
 
   useEffect(() => {
-    if (position) {
-      const tradeDuration = position.duration;
-
-      // if insufficnet candles, notify and fresh new chart
-      if (currentChartIndex + tradeDuration >= chartData.length + 1) {
+    // if insufficnet candles, notify and fresh new chart
+      if (currentChartIndex + MAX_SKIP_AMOUNT >= chartData.ohlcData.length + 1) {
         showMessage({
           message: 'Out of candles! Refreshing New Chart!',
           type: 'warning',
@@ -316,6 +324,9 @@ console.log(wWidth, wHeight, );
         refreshNewStock()
         return
       }
+    // FF if user placed trade
+    if (position) {
+      const tradeDuration = position.duration;
 
       fastForwardChart(tradeDuration).then(() => {
         console.log("FastForwared ", tradeDuration, "candles")
@@ -330,6 +341,8 @@ console.log(wWidth, wHeight, );
         }
       });
     }
+
+
   }, [tradeStartIndex]);
 
   
@@ -434,7 +447,9 @@ console.log(wWidth, wHeight, );
 
 
   
-  function handleTradeWithConditions(direction, data, index, skipInterval) {
+    function handleTradeWithConditions(direction, data, index, skipInterval) {
+    console.log('direction', direction, 'data.length', data.length, 'index', index, 'skipInterval', skipInterval)
+
     const entry = data[index];
 
     const distance = index + skipInterval;
@@ -556,10 +571,10 @@ console.log(wWidth, wHeight, );
   var tradeStartPrice = null;
   if (tradeStartIndex !== null) {
 
-    currPrice = chartData[currentChartIndex].close;
+    currPrice = chartData.ohlcData[currentChartIndex].close;
     tradeStartPrice = null;
     if (tradeStartIndex !== null) {
-      tradeStartPrice = chartData[tradeStartIndex-1].close; // -1 or else will get +1 
+      tradeStartPrice = chartData.ohlcData[tradeStartIndex-1].close; // -1 or else will get +1 
     }
   }
 
@@ -618,6 +633,8 @@ console.log(wWidth, wHeight, );
 
 
 
+  console.log('chartData', chartData)
+
   return (
     <View style={styles.container}>
       {/* INITIALLYT INVISIBLE */}
@@ -670,7 +687,7 @@ console.log(wWidth, wHeight, );
 
       <View style={styles.chartContainer}>
         <CandlestickChartComponent
-          ohlc={chartData.slice(currentChartIndex - candlesAmount, currentChartIndex)}
+          ohlc={chartData.ohlcData.slice(currentChartIndex - candlesAmount, currentChartIndex)}
           tradeStartIndex={tradeStartIndex}
           currentIndex={currentChartIndex}
           currPrice={currPrice}

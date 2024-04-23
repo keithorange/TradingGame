@@ -53,6 +53,9 @@ const MetricsModal = ({ visible, onClose, trades }) => {
         return acc;
     }, []);
 
+    // PRINT OUT ALL DATA SETS USED SO I CAN COPYU PASTE FROM LOG AND HARDCODE AFERWARDS
+    console.log('trades:', trades);
+
     return (
         <Modal
             animationType="slide"
@@ -67,10 +70,11 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                 <View style={styles.modalView}>
                     {
                         (trades.length > 0) && (
-                            <>
+                            <View style={{flex: 1}}>
                                 <Text style={styles.modalText}>Total ROI: {winLossData.totalROI.toFixed(2)}%</Text>
                                 <Text style={styles.modalText}>Wins: {winLossData.wins} Losses: {winLossData.losses} Win Rate: {winRate.toFixed(2)}%</Text>
 
+                            <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '100%',}}>
                                 <PieChart
                                     data={pieChartData}
                                     donut
@@ -85,25 +89,26 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                                     lineData={cumulativeData}
                                     lineConfig={{
                                         color: 'blue',
-                                        thickness: 2,
-                                        isAnimated: true
+                                        thickness: 3,
+                                        isAnimated: false
                                     }}
                                     width={350}
                                     round={100}
                                     showGradient={false}
                                     initialSpacing={20}
-                                />
-
+                                    />
+                                </View>
+                                <View style={{flex:1}} >
                                 <PopulationPyramid
-                                    data={pyramidData}
-                                    showMidAxis
-                                    
+                                    data={pyramidData}                                    
                                     midAxisLabelFontStyle='italic'
                                     midAxisLabelColor='gray'
                                     midAxisLeftColor='red'
                                     midAxisRightColor='green'
-                                />
-
+                                    />
+                                </View>
+                                
+                            <View >
                                 <FlatList
                                     data={trades}
                                     height={'20%'}
@@ -111,8 +116,10 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                                     renderItem={({ item }) => <TradeItem item={item} />}
                                     contentContainerStyle={styles.listContainer}
                                     ListHeaderComponent={() => <Text style={styles.listHeader}>Trade Details</Text>}
-                                />
-                            </>
+                                    />
+                                     </View>
+                            
+                            </View>
                         )
                     }
                     {(trades.length === 0) && (
@@ -184,16 +191,18 @@ const styles = StyleSheet.create({
         textAlign: "center"
     },
     tradeItemContainer: {
-        backgroundColor: '#f8f8f8',
+        backgroundColor: 'transparent',
         borderRadius: 10,
         padding: 10,
         marginVertical: 5,
-        width: 300,
+        width: '100%',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.2,
         shadowRadius: 1.5,
         elevation: 3,
+
+        alignItems: 'center',
     },
     tradeTitle: {
         fontSize: 18,
@@ -205,7 +214,7 @@ const styles = StyleSheet.create({
         marginBottom: 3,
     },
     listContainer: {
-        paddingBottom: 20,
+
     },
     listHeader: {
         fontSize: 20,
