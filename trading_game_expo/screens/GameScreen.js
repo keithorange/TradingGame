@@ -726,30 +726,32 @@ console.log(wWidth, wHeight, );
       </View>
       <View style={styles.controlMenu}>
           
-          <View style={{ flexDirection: 'row',justifyContent: 'flex-end' }}>
-            <View>
-              <Text style={{ color: LIGHT_MODE ? '#808e9b' : '#d2dae2', fontStyle: 'underline', fontSize: 18, 
-            textDecorationLine: 'underline',textAlign: 'right', paddingBottom: 10 }}>Skip: {skipCandlesAmount}</Text>
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
-                <Slider
-                  style={{ flex: 1, height: 30, minWidth: 100 }}
-                  minimumValue={6}
-                  maximumValue={MAXIMUM_SKIP_AMOUNT}
-                  step={1}
-                  value={skipCandlesAmount}
-                  onSlidingComplete={setSkipCandlesAmount}
-                  minimumTrackTintColor="#ffa801"
-                  maximumTrackTintColor="#d2dae2"
-                />
-                <TouchableOpacity
-                  style={[styles.button, { marginLeft: 10 }]}
-                  onPress={() => fastForwardChart(skipCandlesAmount)}
-                >
-                  <Image source={require('../assets/fast-forward.png')} style={{ width: 30, height: 30 }} />
-                </TouchableOpacity>
-              </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+          <View>
+            <Text style={{ color: LIGHT_MODE ? '#808e9b' : '#d2dae2', fontStyle: 'underline', fontSize: 18, textDecorationLine: 'underline', textAlign: 'right', paddingBottom: 10 }}>
+              Skip: {skipCandlesAmount}
+            </Text>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <Slider
+                style={{ flex: 1, height: 30, minWidth: 100, paddingTop: 5 }}
+                minimumValue={6}
+                maximumValue={MAXIMUM_SKIP_AMOUNT}
+                step={1}
+                value={skipCandlesAmount}
+                onSlidingComplete={setSkipCandlesAmount}
+                minimumTrackTintColor="#ffa801"
+                maximumTrackTintColor="#d2dae2"
+              />
+              <TouchableOpacity
+                style={[styles.button, { marginLeft: 10 }]}
+                onPress={() => fastForwardChart(skipCandlesAmount)}
+              >
+                <Image source={require('../assets/fast-forward.png')} style={{ width: 30, height: 30 }} />
+              </TouchableOpacity>
             </View>
           </View>
+        </View>
 
 
           <View style={{ flexDirection: 'row', }}> 
