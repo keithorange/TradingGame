@@ -24,7 +24,12 @@ const DraggableAdjuster = ({ onAdjust, onClose }) => {
   });
 
 return (
-  <TouchableOpacity style={{flex: 1, alignItems: 'center', justifyContent: "center"}} onPress={onClose}>
+  <TouchableOpacity style={{
+    position: 'absolute', 
+    top: 0, left: 0,
+    bottom: 0, right: 0,
+    height: '100%', width: '100%',
+  }} onPress={onClose}>
     <View style={styles.overlay} {...panResponder.panHandlers}>
       <View style={styles.draggableContainer}>
         <View pointerEvents="none">
@@ -48,9 +53,9 @@ const styles = StyleSheet.create({
   },
   draggableContainer: {
     width: '80%',  // Static size based on parent container
-    height: 400,  // Static height
+    height: '80%',  // Static height
     borderRadius: 10,  // Slightly rounded corners
-    backgroundColor: rgba(255,213,209,0.5),
+    backgroundColor: 'rgba(255,213,209,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 6,  // Shadow for Android
