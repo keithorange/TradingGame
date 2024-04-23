@@ -52,8 +52,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   draggableContainer: {
-    width: '80%',  // Static size based on parent container
-    height: '80%',  // Static height
+    width: '95%',  // Static size based on parent container
+    height: '95%',  // Static height
     borderRadius: 10,  // Slightly rounded corners
     backgroundColor: 'rgba(255,213,209,0.5)',
     alignItems: 'center',
