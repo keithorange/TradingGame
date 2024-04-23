@@ -795,12 +795,12 @@ console.log(wWidth, wHeight, );
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.tpsltsButton, {
-                  borderColor: trailingStop ? '#9C27B0' : '#9C27B0',
-                  backgroundColor: trailingStop ? '#9C27B0' : 'white'
+                  borderColor: trailingStop ? 'rgba(255,153,221,1)' : 'rgba(255,153,221,1)',
+                  backgroundColor: trailingStop ? 'rgba(255,153,221,1)' : 'white'
                 }]}
                 onPress={toggleTrailingStop}
               >
-                <Text style={[styles.tpsltsButtonText, { color: trailingStop ? 'white' : '#9C27B0' }]}>
+                <Text style={[styles.tpsltsButtonText, { color: trailingStop ? 'white' : 'rgba(255,153,221,1)' }]}>
                   {trailingStop ? 'Trailing Stop' : 'Trailing Stop'}
                 </Text>
               </TouchableOpacity>
