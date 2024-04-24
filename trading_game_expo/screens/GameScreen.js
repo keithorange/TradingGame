@@ -496,7 +496,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
         trade.exitPrice = price;
         trade.exitDate = data[i].date;
         trade.duration = i - index;
-        trade.priceChange = exitPrice - trade.entryPrice;
+        trade.priceChange = price - trade.entryPrice;
         trade.exitReason = 'take profit';
         break;
       }
@@ -505,7 +505,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
         trade.exitPrice = price;
         trade.exitDate = data[i].date;
         trade.duration = i - index;
-        trade.priceChange = exitPrice - trade.entryPrice;
+        trade.priceChange = price - trade.entryPrice;
         trade.exitReason = 'stop loss';
         break;
       }
@@ -515,7 +515,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
         trade.exitPrice = price;
         trade.exitDate = data[i].date;
         trade.duration = i - index;
-        trade.priceChange = exitPrice - trade.entryPrice;
+        trade.priceChange = price - trade.entryPrice;
         trade.exitReason = 'take profit';
         break;
       }
@@ -524,7 +524,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
         trade.exitPrice = price;
         trade.exitDate = data[i].date;
         trade.duration = i - index;
-        trade.priceChange = exitPrice - trade.entryPrice;
+        trade.priceChange = price - trade.entryPrice;
         trade.exitReason = 'stop loss';
         break;
       }
