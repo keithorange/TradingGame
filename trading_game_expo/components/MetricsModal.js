@@ -133,6 +133,13 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                     {
             (trades.length > 0) && (
               <View style={styles.modalView}>
+                <TouchableOpacity
+                        style={styles.buttonClose}
+                        onPress={onClose}
+                    >
+                        <Text style={styles.textStyle}>Hide Metrics</Text>
+                </TouchableOpacity>
+                
                                 <Text style={styles.modalText}>Total ROI: {winLossData.totalROI.toFixed(2)}%</Text>
                                 <Text style={styles.modalText}>Wins: {winLossData.wins} Losses: {winLossData.losses} Win Rate: {winLossData.winrate.toFixed(2)}%</Text>
 
@@ -196,7 +203,7 @@ const MetricsModal = ({ visible, onClose, trades }) => {
 
                               <FlatList
                                   data={trades}
-                                  height={'20%'}
+                                  height={height*0.2}
                                   keyExtractor={(item) => item.id.toString()}
                                   renderItem={({ item }) => <TradeItem item={item} />}
                                   contentContainerStyle={styles.listContainer}
@@ -211,12 +218,7 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                         <Text style={styles.title}>No trades yet</Text>
                     )}
                     
-                    <TouchableOpacity
-                        style={styles.buttonClose}
-                        onPress={onClose}
-                    >
-                        <Text style={styles.textStyle}>Hide Metrics</Text>
-                    </TouchableOpacity>
+                    
 
             </ScrollView>
         </Modal>
@@ -301,7 +303,7 @@ const styles = StyleSheet.create({
         marginBottom: 3,
     },
     listContainer: {
-
+      height: height*0.2
     },
     listHeader: {
         fontSize: 20,
