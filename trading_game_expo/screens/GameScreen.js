@@ -490,11 +490,13 @@ if (takeProfit || stopLoss || trailingStopPct) {
     const meanPrice = (candle.open + candle.high + candle.low + candle.close) / 4;
 
     if (direction === 'Long') {
+      
       let price = use_mean_price ? meanPrice : candle.high;
       if (takeProfit && price >= takeProfit) {
         trade.exitPrice = price;
         trade.exitDate = data[i].date;
         trade.duration = i - index;
+        trade.priceChange = exitPrice - trade.entryPrice;
         trade.exitReason = 'take profit';
         break;
       }
@@ -503,6 +505,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
         trade.exitPrice = price;
         trade.exitDate = data[i].date;
         trade.duration = i - index;
+        trade.priceChange = exitPrice - trade.entryPrice;
         trade.exitReason = 'stop loss';
         break;
       }
@@ -512,6 +515,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
         trade.exitPrice = price;
         trade.exitDate = data[i].date;
         trade.duration = i - index;
+        trade.priceChange = exitPrice - trade.entryPrice;
         trade.exitReason = 'take profit';
         break;
       }
@@ -520,6 +524,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
         trade.exitPrice = price;
         trade.exitDate = data[i].date;
         trade.duration = i - index;
+        trade.priceChange = exitPrice - trade.entryPrice;
         trade.exitReason = 'stop loss';
         break;
       }
