@@ -155,10 +155,16 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                                           yGutter: 0,
                                           animateOnMount: false,
                           animationDuration: 0,
-                                          curve: d3Shape.curveStep
+                                          curve: d3Shape.curveStepBefore
                                         }}>
                                             <LineChart.Dot color="orange" at={cumBarData.length-1}
-                                             pulseBehaviour={"always"} />
+                            pulseBehaviour={"always"} />
+                          
+                      {/* line at 0 */}
+                          <LineChart.HorizontalLine
+                            at={{ value: 0 }}
+                            color="grey"  // Color for Stop Loss
+                          />
                                         </LineChart.Path>
                                       </LineChart>
                                     </LineChart.Provider>
@@ -176,7 +182,12 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                                           curve: d3Shape.curveLinear
                                         }}>
                                             <LineChart.Dot color="orange" at={cumBarData.length-1}
-                                             pulseBehaviour={"always"} />
+                            pulseBehaviour={"always"} />
+                          {/* line at 0 */}
+                          <LineChart.HorizontalLine
+                            at={{ value: 0 }}
+                            color="grey"  // Color for Stop Loss
+                          />
                                         </LineChart.Path>
                                       </LineChart>
                                     </LineChart.Provider>
