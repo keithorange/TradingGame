@@ -27,17 +27,17 @@ const TradeItem = ({ item }) => {
 
 const MetricsModal = ({ visible, onClose, trades }) => {
   
-  //  trades = [
-  //   { id: 1, roi: 5, isWin: true, type: 'Long', exitReason: 'Profit Target', duration: 5 },
-  //   { id: 2, roi: -2, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 3 },
-  //   { id: 3, roi: 1, isWin: true, type: 'Long', exitReason: 'Profit Target', duration: 7 },
-  //    { id: 4, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
+   trades = [
+    { id: 1, roi: 5, isWin: true, type: 'Long', exitReason: 'Profit Target', duration: 5 },
+    { id: 2, roi: -2, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 3 },
+    { id: 3, roi: 1, isWin: true, type: 'Long', exitReason: 'Profit Target', duration: 7 },
+     { id: 4, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
     
-  //    { id: 5, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
-  //    { id: 6, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
-  //    { id: 7, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
-  //    { id: 8, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
-  // ]
+     { id: 5, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
+     { id: 6, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
+     { id: 7, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
+     { id: 8, roi: -5, isWin: false, type: 'Short', exitReason: 'Stop Loss', duration: 2 },
+  ]
 
   
   const winLossData = {
@@ -129,10 +129,10 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                 style={styles.centeredView}
                 contentContainerStyle={styles.scrollViewContainer}
             >
-                <View style={styles.modalView}>
+                
                     {
-                        (trades.length > 0) && (
-                            <View>
+            (trades.length > 0) && (
+              <View style={styles.modalView}>
                                 <Text style={styles.modalText}>Total ROI: {winLossData.totalROI.toFixed(2)}%</Text>
                                 <Text style={styles.modalText}>Wins: {winLossData.wins} Losses: {winLossData.losses} Win Rate: {winLossData.winrate.toFixed(2)}%</Text>
 
@@ -141,23 +141,24 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                             <View>
                                 <Text style={styles.chartTitle}>Win/Loss Distribution</Text>
                                 <PieChart
-                                  height={height * 0.1}
-                                  width={width * 0.4}
+                                  height={height * 0.12}
+                                  width={width * 0.6}
                                   data={pieChartData}
                                   />
 
                                  <Text style={styles.chartTitle}>Total ROI Over Time</Text> 
                                   {cumBarData.length > 0 && (
                                     <LineChart.Provider data={cumBarData}>
-                                      <LineChart yGutter={0} height={height} width={width} >
+                                      <LineChart yGutter={0} height={height*0.12} width={width*0.8} >
                                         <LineChart.Path color="orange" pathProps={{
                                           isTransitionEnabled: false,
                                           yGutter: 0,
                                           animateOnMount: false,
-                                          animationDuration: 0,
+                          animationDuration: 0,
+                                          curve: d3Shape.curveStep
                                         }}>
-                                            {/* <LineChart.Dot color="orange" at={cumBarData.length-1}
-                                            hasPulse pulseBehaviour={"always"} /> */}
+                                            <LineChart.Dot color="orange" at={cumBarData.length-1}
+                                             pulseBehaviour={"always"} />
                                         </LineChart.Path>
                                       </LineChart>
                                     </LineChart.Provider>
@@ -165,7 +166,7 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                                 <Text style={styles.chartTitle}>Trade Profits</Text> 
                                 {roiBarData.length > 0 && (
                                     <LineChart.Provider data={roiBarData}>
-                                      <LineChart yGutter={0} height={height} width={width} >
+                                      <LineChart yGutter={0}height={height*0.12} width={width*0.8}  >
                                         <LineChart.Path color="orange" pathProps={{
                                           isTransitionEnabled: false,
                                           yGutter: 0,
@@ -174,8 +175,8 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                             // no curve just straight lines
                                           curve: d3Shape.curveLinear
                                         }}>
-                                            {/* <LineChart.Dot color="orange" at={cumBarData.length-1}
-                                            hasPulse pulseBehaviour={"always"} /> */}
+                                            <LineChart.Dot color="orange" at={cumBarData.length-1}
+                                             pulseBehaviour={"always"} />
                                         </LineChart.Path>
                                       </LineChart>
                                     </LineChart.Provider>
@@ -205,7 +206,7 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                     >
                         <Text style={styles.textStyle}>Hide Metrics</Text>
                     </TouchableOpacity>
-                </View>
+
             </ScrollView>
         </Modal>
     );
@@ -215,7 +216,9 @@ const styles = StyleSheet.create({
     centeredView: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        padding: 10
+    padding: 10,
+        marginTop: '2.5%',
+    marginHorizontal: '2.5%'
     },
     scrollViewContainer: {
         flexGrow: 1,
@@ -228,7 +231,7 @@ const styles = StyleSheet.create({
         backgroundColor: "white",
         borderRadius: 20,
         padding: 35,
-        alignItems: "center",
+      alignItems: "center",
         shadowColor: "#000",
         shadowOffset: {
             width: 0,
