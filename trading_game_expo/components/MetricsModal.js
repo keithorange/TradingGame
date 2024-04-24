@@ -22,6 +22,7 @@ const TradeItem = ({ item }) => {
   );
 };
 
+const {height, width} = Dimensions.get('window');
 
 
 
