@@ -645,7 +645,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
   };
 
 
-    const TRADE_FEE = 0.4; // 0.4% fee for each trade
+    const TRADE_FEE = 0.2; // 0.4% fee for each trade
     const feeTotalROI = totalROI - TRADE_FEE*trades.length
   console.log('chartData', chartData)
 
