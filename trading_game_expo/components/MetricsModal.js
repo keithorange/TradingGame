@@ -1,6 +1,9 @@
 import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View, ScrollView, FlatList, Dimensions } from 'react-native';
-import { LineChart, PieChart, BarChart, LineChartBicolor } from 'react-native-gifted-charts';
+import { PieChart } from 'react-native-gifted-charts';
+import { CandlestickChart, LineChart } from 'react-native-wagmi-charts';
+
+import * as d3Shape from 'd3-shape';
 
 const TradeItem = ({ item }) => {
   return (
@@ -144,26 +147,39 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                                   />
 
                                  <Text style={styles.chartTitle}>Total ROI Over Time</Text> 
-                                  <BarChart
-                                      height={height*0.1}
-                                      width={width*0.4}
-                                      data={cumBarData}
-                                      round={100}
-                                      showGradient={false}
-                                      initialSpacing={5}
-                                      />
-
-          
-
+                                  {cumBarData.length > 0 && (
+                                    <LineChart.Provider data={cumBarData}>
+                                      <LineChart yGutter={0} height={height} width={width} >
+                                        <LineChart.Path color="orange" pathProps={{
+                                          isTransitionEnabled: false,
+                                          yGutter: 0,
+                                          animateOnMount: false,
+                                          animationDuration: 0,
+                                        }}>
+                                            {/* <LineChart.Dot color="orange" at={cumBarData.length-1}
+                                            hasPulse pulseBehaviour={"always"} /> */}
+                                        </LineChart.Path>
+                                      </LineChart>
+                                    </LineChart.Provider>
+                                    )}
                                 <Text style={styles.chartTitle}>Trade Profits</Text> 
-                                <BarChart
-                                    height={height*0.1}
-                                    width={width*0.4}
-                                    data={roiBarData}
-                                    round={100}
-                                    showGradient={false}
-                                    initialSpacing={5}
-                                    />
+                                {roiBarData.length > 0 && (
+                                    <LineChart.Provider data={roiBarData}>
+                                      <LineChart yGutter={0} height={height} width={width} >
+                                        <LineChart.Path color="orange" pathProps={{
+                                          isTransitionEnabled: false,
+                                          yGutter: 0,
+                                          animateOnMount: false,
+                            animationDuration: 0,
+                            // no curve just straight lines
+                                          curve: d3Shape.curveLinear
+                                        }}>
+                                            {/* <LineChart.Dot color="orange" at={cumBarData.length-1}
+                                            hasPulse pulseBehaviour={"always"} /> */}
+                                        </LineChart.Path>
+                                      </LineChart>
+                                    </LineChart.Provider>
+                                    )}
 
 
                               <FlatList

@@ -89,8 +89,8 @@ const activePathOhlc = ohlc.map((entry, index) => {
 
         {/* Bottom red greren candlestick chart */}
 
-
-          <CandlestickChart.Provider data={processedOhlc}>
+          {/* shift ohlc 1 tp left */}
+          <CandlestickChart.Provider data={processedOhlc.slice(1)}>
             <CandlestickChart height={height} width={width}>
               <CandlestickChart.Candles useAnimations={false} />  {/* Disable animations */}
               <CandlestickChart.Crosshair

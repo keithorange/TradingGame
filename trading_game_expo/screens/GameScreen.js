@@ -401,7 +401,7 @@ console.log(wWidth, wHeight, );
     
   }
 
-  function calculateTrailingStopSequence(data, trailingStopPct, direction, use_mean_price=false) {
+  function calculateTrailingStopSequence(data, trailingStopPct, direction, use_mean_price=true) {
     let extremePrice = data[0].close; // Initialize with the first closing price
     let trailingStops = [];
     let stopPrice = 0;
@@ -640,7 +640,8 @@ if (takeProfit || stopLoss || trailingStopPct) {
   };
 
 
-
+    const TRADE_FEE = 0.4; // 0.4% fee for each trade
+    const feeTotalROI = totalROI - TRADE_FEE*trades.length
   console.log('chartData', chartData)
 
   return (
@@ -681,8 +682,10 @@ if (takeProfit || stopLoss || trailingStopPct) {
 
           {/* Metrics Button */}
           <View style={styles.statsButtonContainer}>
-            <View>
+          <View style={ {flexDirection: 'row'}}>
             <Text style={[styles.totalRoiText, {color: totalROI >= 0 ? 'rgba(0,148,32,1)' : 'red'}]}>{totalROI.toFixed(2)}%</Text>
+
+            <Text style={[styles.totalRoiText, {color: feeTotalROI >= 0 ? 'rgba(0,148,32,1)' : 'red', paddingLeft: 10,fontWeight: 300}]}>{(feeTotalROI).toFixed(2)}%</Text>
             </View>
             <View>
               <Text style={styles.streakText}>{streak}x</Text>
