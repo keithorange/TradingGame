@@ -414,11 +414,14 @@ console.log(wWidth, wHeight, );
 
     for (let i = 1; i < data.length; i++) {
       const candle = data[i];
+      const price = use_mean_price ? (candle.open + candle.high + candle.low + candle.close) / 4 : 
+        (direction === 'Long' ? candle.low : candle.high);
+      
       if (direction === 'Long') {
-        extremePrice = Math.max(extremePrice, candle.high);
+        extremePrice = Math.max(extremePrice, price);
         stopPrice = extremePrice - (extremePrice * adjustedTrailingStopPct);
       } else {
-        extremePrice = Math.min(extremePrice, candle.low);
+        extremePrice = Math.min(extremePrice, price);
         stopPrice = extremePrice + (extremePrice * adjustedTrailingStopPct);
       }
 
@@ -649,6 +652,8 @@ if (takeProfit || stopLoss || trailingStopPct) {
     const feeTotalROI = totalROI - TRADE_FEE*trades.length
   console.log('chartData', chartData)
 
+    const HIDE_STOCK_NAME = true // keep hidden replace with ****
+    
   return (
     <View style={styles.container}>
       {/* INITIALLYT INVISIBLE */}
@@ -683,6 +688,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
           onSelectStock={setSelectedStock}
           allStockData={ohlcvDataSets.map(({ticker, humanName, category}) => ({ticker, humanName, category}))}
           onRefresh={refreshNewStock}
+          hideStockName={HIDE_STOCK_NAME}
         />
 
           {/* Metrics Button */}

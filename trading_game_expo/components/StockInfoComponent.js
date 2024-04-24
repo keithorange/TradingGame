@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Image, View, Text, TouchableOpacity, StyleSheet, Modal, FlatList, ScrollView, Dimensions } from 'react-native';
 
-const StockInfoComponent = ({ selectedStock, onSelectStock, allStockData, onRefresh }) => {
+const StockInfoComponent = ({ selectedStock, onSelectStock, allStockData, onRefresh, hideStockName }) => {
     const [dropdownVisible, setDropdownVisible] = useState(false);
 
     const handleSelectStock = (stock) => {
@@ -30,10 +30,12 @@ const StockInfoComponent = ({ selectedStock, onSelectStock, allStockData, onRefr
         </View>
     );
 
+    const stockNameText = hideStockName ? '****' : selectedStock;
+
     return (
         <View style={styles.container}>
             <TouchableOpacity style={styles.infoContainer} onPress={() => setDropdownVisible(true)}>
-                <Text style={styles.text}>{selectedStock} ▼</Text>
+                <Text style={styles.text}>{stockNameText} ▼</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
@@ -93,9 +95,8 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     text: {
-        fontSize: 18,
+        fontSize: 24,
         fontWeight: 'bold',
-        textDecorationLine: 'underline',
         color: 'black',
     },
     refreshButton: {
