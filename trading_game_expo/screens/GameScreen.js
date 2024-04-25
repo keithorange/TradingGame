@@ -428,7 +428,7 @@ console.log(wWidth, wHeight, );
     
   }
 
-  function calculateTrailingStopSequence(data, trailingStopPct, direction, use_mean_price=true) {
+  function calculateTrailingStopSequence(data, trailingStopPct, direction, use_mean_price=false) {
     let extremePrice = data[0].close; // Initialize with the first closing price
     let trailingStops = [];
     let stopPrice = 0;
