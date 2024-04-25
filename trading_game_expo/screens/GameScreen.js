@@ -441,9 +441,10 @@ console.log(wWidth, wHeight, );
 
     // use max/min to update trailing stop, and use mean_price to trigger hit! UNIQUE LOGIC
 
+    let mean_price = null;
     for (let i = 1; i < data.length; i++) {
       const candle = data[i];
-      const mean_price = (candle.open + candle.high + candle.low + candle.close) / 4
+      mean_price = (candle.open + candle.high + candle.low + candle.close) / 4
       //const price = use_mean_price ? mean_price : (direction === 'Long' ? candle.low : candle.high);
       
       if (direction === 'Long') {
