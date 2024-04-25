@@ -428,7 +428,7 @@ console.log(wWidth, wHeight, );
     
   }
 
-  function calculateTrailingStopSequence(data, trailingStopPct, direction, use_mean_price=true) {
+  function calculateTrailingStopSequence(data, trailingStopPct, direction,) {
     let extremePrice = data[0].close; // Initialize with the first closing price
     let trailingStops = [];
     let stopPrice = 0;
@@ -439,27 +439,27 @@ console.log(wWidth, wHeight, );
     // Ensure trailingStopPct is always positive
     let adjustedTrailingStopPct = Math.abs(trailingStopPct) / 100.0;
 
+    // use max/min to update trailing stop, and use mean_price to trigger hit! UNIQUE LOGIC
+
     for (let i = 1; i < data.length; i++) {
       const candle = data[i];
-      const price = use_mean_price ? (candle.open + candle.high + candle.low + candle.close) / 4 : 
-        (direction === 'Long' ? candle.low : candle.high);
+      const mean_price = (candle.open + candle.high + candle.low + candle.close) / 4
+      //const price = use_mean_price ? mean_price : (direction === 'Long' ? candle.low : candle.high);
       
       if (direction === 'Long') {
-        extremePrice = Math.max(extremePrice, price);
+        extremePrice = Math.max(extremePrice, candle.high);
         stopPrice = extremePrice - (extremePrice * adjustedTrailingStopPct);
       } else {
-        extremePrice = Math.min(extremePrice, price);
+        extremePrice = Math.min(extremePrice, candle.low);
         stopPrice = extremePrice + (extremePrice * adjustedTrailingStopPct);
       }
 
       trailingStops.push(stopPrice);
 
     if (!hitDetected) {
-      const price = use_mean_price ? (candle.open + candle.high + candle.low + candle.close) / 4 : 
-        (direction === 'Long' ? candle.low : candle.high);
 
-      if ((direction === 'Long' && price <= stopPrice) ||
-        (direction === 'Short' && price >= stopPrice)) {
+      if ((direction === 'Long' && mean_price <= stopPrice) ||
+        (direction === 'Short' && mean_price >= stopPrice)) {
         hitDetected = true;
         hitPrice = price;
         hitIdx = i;
