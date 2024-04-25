@@ -298,6 +298,10 @@ console.log(wWidth, wHeight, );
               if (isHit) {
                 console.log('Trailing Stop Hit at', hitPrice, 'at index', newIndex);
                 setPosition({ ...position, exitPrice: hitPrice, exitReason: 'trailing stop hit' });
+
+                // turn off ts
+                setTrailingStop(null);
+                
                 resolve(); // Resolve the promise early due to stop hit
                 return;
               }
