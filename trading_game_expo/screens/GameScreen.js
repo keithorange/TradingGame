@@ -439,13 +439,13 @@ console.log(wWidth, wHeight, );
     // Ensure trailingStopPct is always positive
     let adjustedTrailingStopPct = Math.abs(trailingStopPct) / 100.0;
 
-    // use max/min to update trailing stop, and use mean_price to trigger hit! UNIQUE LOGIC
+    // use max/min to update trailing stop, and use meanPrice to trigger hit! UNIQUE LOGIC
 
-    let mean_price = null;
+    let meanPrice = null;
     for (let i = 1; i < data.length; i++) {
       const candle = data[i];
-      mean_price = (candle.open + candle.high + candle.low + candle.close) / 4
-      //const price = use_mean_price ? mean_price : (direction === 'Long' ? candle.low : candle.high);
+      meanPrice = (candle.open + candle.high + candle.low + candle.close) / 4
+      //const price = use_mean_price ? meanPrice : (direction === 'Long' ? candle.low : candle.high);
       
       if (direction === 'Long') {
         extremePrice = Math.max(extremePrice, candle.high);
@@ -459,10 +459,10 @@ console.log(wWidth, wHeight, );
 
     if (!hitDetected) {
 
-      if ((direction === 'Long' && mean_price <= stopPrice) ||
-        (direction === 'Short' && mean_price >= stopPrice)) {
+      if ((direction === 'Long' && meanPrice <= stopPrice) ||
+        (direction === 'Short' && meanPrice >= stopPrice)) {
         hitDetected = true;
-        hitPrice = price;
+        hitPrice = meanPrice;
         hitIdx = i;
       }
     }
