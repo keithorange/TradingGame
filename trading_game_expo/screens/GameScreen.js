@@ -16,19 +16,37 @@ import MetricsModal from '../components/MetricsModal';  // Make sure this path i
 
 import ohlcvDataSets from '../price_data/OhlcvDataSets';  // Adjust the path as needed
 
+// log to ensure we ipoted ohlcvDataSets with elngth
+console.log('ohlcvDataSets.length', ohlcvDataSets.length)
+
 const getRandomStockOhlc = () => {
-  let randomIdx = Math.floor(Math.random() * ohlcvDataSets.length);
-  let randomChoiceData = ohlcvDataSets[randomIdx];
+  if (ohlcvDataSets.length > 0) {
+    let randomIdx = Math.floor(Math.random() * ohlcvDataSets.length);
+    let randomChoiceData = ohlcvDataSets[randomIdx];
 
-  const { category, ticker, humanName, ohlcData }= randomChoiceData;
+    // ensure data hs sufifcient length, if not, rety
+    const MIN_OHLC_DATA_LENGTH = 120;
+    let i = 0;
+    while (randomChoiceData.ohlcData.length < MIN_OHLC_DATA_LENGTH && i < 1000) {
+      randomIdx = Math.floor(Math.random() * ohlcvDataSets.length);
+      randomChoiceData = ohlcvDataSets[randomIdx];
+      i++;
+    }
 
-  // renaming cuz deprecated dummy
-  //const ohlc = ohlcData;
-  const stock = ticker;
-  // const humanName = humanName;
-  // const category = category;
 
-  return { stock, ohlcData, humanName, category };
+    const { category, ticker, humanName, ohlcData } = randomChoiceData;
+
+    // renaming cuz deprecated dummy
+    //const ohlc = ohlcData;
+    const stock = ticker;
+    // const humanName = humanName;
+    // const category = category;
+
+    return { stock, ohlcData, humanName, category };
+  } else {
+    console.error('No data found in ohlcvDataSets');
+    return null;
+  }
 }
 
 // get height width from dimeniosn
@@ -318,7 +336,7 @@ console.log(wWidth, wHeight, );
     if (currentChartIndex + MAX_SKIP_AMOUNT >= chartData.ohlcData.length + 1) {
         
       // dont show on first time
-      if (position) {
+      if (!tradeStartIndex) {
 
         showMessage({
           message: 'Out of candles! Refreshing New Chart!',
@@ -342,7 +360,11 @@ console.log(wWidth, wHeight, );
 
         if (position.isWin) {
             triggerConfetti();
+
+         
         }
+        // fetch and refresh new stock chart
+      
       });
     }
 
