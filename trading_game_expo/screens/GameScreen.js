@@ -301,7 +301,8 @@ console.log(wWidth, wHeight, );
 
                 // turn off ts
                 setTrailingStop(null);
-                
+                setTrailingStopPct(null);
+
                 resolve(); // Resolve the promise early due to stop hit
                 return;
               }
@@ -427,7 +428,7 @@ console.log(wWidth, wHeight, );
     
   }
 
-  function calculateTrailingStopSequence(data, trailingStopPct, direction, use_mean_price=true) {
+  function calculateTrailingStopSequence(data, trailingStopPct, direction, use_mean_price=false) {
     let extremePrice = data[0].close; // Initialize with the first closing price
     let trailingStops = [];
     let stopPrice = 0;
