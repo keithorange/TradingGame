@@ -273,7 +273,7 @@ console.log(wWidth, wHeight, );
     const skipTimePerCandle = animationDurationMS / (Math.log(skipAmount + 1)+1)
 
     // add 1 to skipAmount so we see final candle!
-    const loopLength = skipAmount + 1;
+    const loopLength = skipAmount;
     for (let i = 1; i <= loopLength+1; i++) {
       promises.push(new Promise((resolve) => {
         setTimeout(() => {
