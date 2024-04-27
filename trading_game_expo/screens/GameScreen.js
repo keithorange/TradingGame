@@ -428,7 +428,7 @@ console.log(wWidth, wHeight, );
     
   }
 
-  function calculateTrailingStopSequence(data, trailingStopPct, direction,) {
+  function calculateTrailingStopSequence(data, trailingStopPct, direction,exitPriceIsStop=true) {
     let extremePrice = data[0].close; // Initialize with the first closing price
     let trailingStops = [];
     let stopPrice = 0;
@@ -462,7 +462,12 @@ console.log(wWidth, wHeight, );
       if ((direction === 'Long' && meanPrice <= stopPrice) ||
         (direction === 'Short' && meanPrice >= stopPrice)) {
         hitDetected = true;
-        hitPrice = meanPrice;
+        if (exitPriceIsStop) {
+          hitPrice = stopPrice;
+        } else {
+          hitPrice = meanPrice;
+        }
+        
         hitIdx = i;
       }
     }
@@ -485,7 +490,7 @@ console.log(wWidth, wHeight, );
 
 
   
-    function handleTradeWithConditions(direction, data, index, skipInterval, use_mean_price=false) {
+    function handleTradeWithConditions(direction, data, index, skipInterval, use_mean_price=false, exitPriceIsStop=true) {
     console.log('direction', direction, 'data.length', data.length, 'index', index, 'skipInterval', skipInterval)
 
     const entry = data[index];
@@ -523,47 +528,48 @@ if (takeProfit || stopLoss || trailingStopPct) {
     if (direction === 'Long') {
       
       let price = use_mean_price ? meanPrice : candle.high;
-      if (takeProfit && price >= takeProfit) {
-        trade.exitPrice = price;
+
+      const doTakeProfitLogic = () => { 
+        trade.exitPrice = exitPriceIsStop ? takeProfit : price;
         trade.exitDate = data[i].date;
         trade.duration = i - index;
-        trade.priceChange = price - trade.entryPrice;
+        trade.priceChange = trade.exitPrice - trade.entryPrice;
         trade.exitReason = 'take profit';
+      }
+
+      const doStopLossLogic = () => {
+        trade.exitPrice = exitPriceIsStop ? stopLoss : price;
+        trade.exitDate = data[i].date;
+        trade.duration = i - index;
+        trade.priceChange = trade.exitPrice - trade.entryPrice;
+        trade.exitReason = 'stop loss';
+      }
+
+      if (takeProfit && price >= takeProfit) {
+        doTakeProfitLogic();
         break;
       }
       price = use_mean_price ? meanPrice : candle.low;
       if (stopLoss && price <= stopLoss) {
-        trade.exitPrice = price;
-        trade.exitDate = data[i].date;
-        trade.duration = i - index;
-        trade.priceChange = price - trade.entryPrice;
-        trade.exitReason = 'stop loss';
+        doStopLossLogic();
         break;
       }
     } else { // Short
       let price = use_mean_price ? meanPrice : candle.low;
       if (takeProfit && price <= takeProfit) {
-        trade.exitPrice = price;
-        trade.exitDate = data[i].date;
-        trade.duration = i - index;
-        trade.priceChange = price - trade.entryPrice;
-        trade.exitReason = 'take profit';
+        doTakeProfitLogic()
         break;
       }
       price = use_mean_price ? meanPrice : candle.high;
       if (stopLoss && price >= stopLoss) {
-        trade.exitPrice = price;
-        trade.exitDate = data[i].date;
-        trade.duration = i - index;
-        trade.priceChange = price - trade.entryPrice;
-        trade.exitReason = 'stop loss';
+        doStopLossLogic();
         break;
       }
     }
 
         // Trailing stop condition
         if (trailingStopPct) {
-          const { isHit, hitPrice } = calculateTrailingStopSequence(data.slice(index, i + 1), trailingStopPct, direction);
+          const { isHit, hitPrice } = calculateTrailingStopSequence(data.slice(index, i + 1), trailingStopPct, direction, exitPriceIsStop);
           if (isHit) {
             trade.exitPrice = hitPrice;
             trade.exitDate = data[i].date;
@@ -575,25 +581,14 @@ if (takeProfit || stopLoss || trailingStopPct) {
             break;
           }
         }
-      //   else {
-      //   // timeout exit
-      //   // Calculate the result of the trade
-      //   trade.priceChange = trade.exitPrice - trade.entryPrice;
-      //   if (direction === 'Long') {
-      //     trade.isWin = trade.priceChange > 0;
-      //     trade.roi = (trade.priceChange / trade.entryPrice) * 100.0;
-      //   } else { // Short
-      //     trade.isWin = trade.priceChange < 0;
-      //     trade.roi = - (trade.priceChange / trade.entryPrice) * 100.0;
-      //   }
-          
-      // } 
+
 
       }
     }
 
-    console.log('AAA', trade)
-    
+      
+
+    // default roi
     if (trade.direction === 'Long') {
       trade.isWin = trade.priceChange > 0;
       trade.roi = (trade.priceChange / trade.entryPrice) * 100.0;
@@ -601,7 +596,6 @@ if (takeProfit || stopLoss || trailingStopPct) {
       trade.isWin = trade.priceChange < 0;
       trade.roi = - (trade.priceChange / trade.entryPrice) * 100.0;
     }
-    console.log('BBB', trade)
     return trade;
   }
 
