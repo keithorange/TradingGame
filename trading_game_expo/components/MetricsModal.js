@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View, ScrollView, FlatList, Dimensions } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { CandlestickChart, LineChart } from 'react-native-wagmi-charts';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 import * as d3Shape from 'd3-shape';
 
@@ -130,16 +131,16 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                 style={styles.centeredView}
                 contentContainerStyle={styles.scrollViewContainer}
             >
+              <TouchableOpacity
+                      style={styles.buttonClose}
+                      onPress={onClose}
+                  >
+                      <Text style={styles.textStyle}>Hide Metrics</Text>
+              </TouchableOpacity>
                 
                     {
             (trades.length > 0) && (
               <View style={styles.modalView}>
-                <TouchableOpacity
-                        style={styles.buttonClose}
-                        onPress={onClose}
-                    >
-                        <Text style={styles.textStyle}>Hide Metrics</Text>
-                </TouchableOpacity>
                 
                                 <Text style={styles.modalText}>Total ROI: {winLossData.totalROI.toFixed(2)}%</Text>
                                 <Text style={styles.modalText}>Wins: {winLossData.wins} Losses: {winLossData.losses} Win Rate: {winLossData.winrate.toFixed(2)}%</Text>

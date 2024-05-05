@@ -4,11 +4,15 @@
 import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { CandlestickChart, LineChart } from 'react-native-wagmi-charts';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 
 const CandlestickChartComponent = ({ ohlc, tradeStartIndex, currentIndex, currPrice, tradeStartPrice, onPressChartFn, takeProfit, stopLoss, trailingStop,
-height, width
+  height, width,
+hideLinePath= false
 }) => {
+
+  console.log('IN (CandlestickChartComponent)', 'ohlc', ohlc )
 
 
   const lineData = ohlc.map(entry => ({
@@ -33,7 +37,6 @@ height, width
   const normalizedTradeStartIndex = tradeStartIndex - (currentIndex - ohlc.length);
   
 const activePathOhlc = ohlc.map((entry, index) => {
-  console.log('entry', entry, 'index', index);
   const mean = (entry.open + entry.high + entry.low + entry.close) / 4;
 
   
@@ -58,7 +61,6 @@ const activePathOhlc = ohlc.map((entry, index) => {
 
   // Mapping function to either return normal candles or flattened candles based on the index
   const processedOhlc = ohlc.map((entry, index) => {
-    console.log('index', index, 'normalizedTradeStartIndex', normalizedTradeStartIndex, 'tradeDuration', tradeDuration, )
 
     // Calculate the mean of the candlestick values
     const mean = (entry.open + entry.high + entry.low + entry.close) / 4;
@@ -72,7 +74,6 @@ const activePathOhlc = ohlc.map((entry, index) => {
       close: mean,
     };
 
-    console.log()
 
     // Flatten the candles past the currentIndex
     if ((tradeDuration > 0 )&&(index > normalizedTradeStartIndex)) {
@@ -82,6 +83,8 @@ const activePathOhlc = ohlc.map((entry, index) => {
     // Return normal candlestick data for those before or at the currentIndex
     return entry;
   });
+
+
   return (
     <View style={styles.container}>
 
@@ -93,11 +96,11 @@ const activePathOhlc = ohlc.map((entry, index) => {
           <CandlestickChart.Provider data={processedOhlc}>
             <CandlestickChart height={height} width={width}>
               <CandlestickChart.Candles useAnimations={false} />  {/* Disable animations */}
-              <CandlestickChart.Crosshair
+              {/* <CandlestickChart.Crosshair
                 color={"rgba(250,99,2,0)"}
                 onCurrentXChange={onPressChartFn}>
               </CandlestickChart.Crosshair>
-              
+               */}
             </CandlestickChart>
             {/* <CandlestickChart.PriceText type="open" />
             <CandlestickChart.PriceText type="high" />
@@ -113,10 +116,10 @@ const activePathOhlc = ohlc.map((entry, index) => {
       <CandlestickChart.Provider data={activePathOhlc}>
         <CandlestickChart height={height} width={width}>
           <CandlestickChart.Candles useAnimations={false} positiveColor={"rgba(0,255,0,1)"} negativeColor={"#ffb2d0"} /> 
-          <CandlestickChart.Crosshair
+          {/* <CandlestickChart.Crosshair
             color={"rgba(250,99,2,0)"}
             onCurrentXChange={onPressChartFn}>
-          </CandlestickChart.Crosshair>
+          </CandlestickChart.Crosshair> */}
           
         </CandlestickChart>
         
@@ -128,8 +131,10 @@ const activePathOhlc = ohlc.map((entry, index) => {
       <View style={styles.overlayChart}>
         {lineData.length > 0 && (
         <LineChart.Provider data={lineData}>
-          <LineChart yGutter={0} height={height} width={width} >
-            <LineChart.Path color="transparent" pathProps={{
+            <LineChart //yGutter={0} 
+              height={height} width={width} >
+              
+              <LineChart.Path color="transparent" pathProps={{
               isTransitionEnabled: false,
               yGutter: 0,
               animateOnMount: false,
@@ -137,12 +142,15 @@ const activePathOhlc = ohlc.map((entry, index) => {
 
               //curve: d3Shape.curveNatural
             }}>
-              {/* Dots for path */}
-              
-                <LineChart.Dot color="orange" at={lineData.length-1}
-                hasPulse pulseBehaviour={"always"} />
 
-              {/* <LineChart.Highlight color="orange" to={lineData.length - 1} from={(lineData.length - 1) - tradeDuration} /> */}
+
+
+                            {/* Curr place dot */}
+              <LineChart.Dot color="orange" at={lineData.length-1}
+                hasPulse pulseBehaviour={"always"} />
+{/* 
+
+              <LineChart.Highlight color="orange" to={lineData.length - 1} from={(lineData.length - 1) - tradeDuration} /> */}
 
 
 
@@ -179,7 +187,6 @@ const activePathOhlc = ohlc.map((entry, index) => {
                   label={`TS: ${trailingStop}`}
                 />
               )}
-
             </LineChart.Path>
           </LineChart>
         </LineChart.Provider>

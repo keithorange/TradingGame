@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {Modal,  Image, View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import Slider from '@react-native-community/slider';
 import FlashMessage from "react-native-flash-message";
 import { showMessage, hideMessage } from "react-native-flash-message";
@@ -81,7 +82,8 @@ console.log(wWidth, wHeight, );
   const [losses, setLosses] = useState(0);
 
   // for longshort game mode
-  const [skipCandlesAmount, setSkipCandlesAmount] = useState(30);  // Default value for the slider
+    const [skipCandlesAmount, setSkipCandlesAmount] = useState(30);  // Default value for the slider
+    const [isFastForwardingChart, setIsFastForwardingChart] = useState(false)
 
   // for tpsl game mode
   const [tpslMode, setTpslMode] = useState('tp');  // adding tp or sl [take profit or stop loss] (OR ts)
@@ -90,6 +92,10 @@ console.log(wWidth, wHeight, );
   // for trailing game mode
   const [trailingStop, setTrailingStop] = useState(null); //
   const [trailingStopPct, setTrailingStopPct] = useState(null); // useEffect calculated dynamically
+  
+    
+    
+  // confetti  
   const [showConfetti, setShowConfetti] = useState(false);
   const confettiRef = useRef(null);
 
@@ -187,18 +193,26 @@ console.log(wWidth, wHeight, );
 }, []);
 
   async function fetchChartData() {
-      // const data = await getChartData(selectedStock);
-      // setChartData(data);
-      const data = await getChartData(selectedStock);
-      const { stock, ohlcData } = data
-      setChartData(data);
+    // const data = await getChartData(selectedStock);
+    // setChartData(data);
+    const data = await getChartData(selectedStock);
+    const { stock, ohlcData } = data
+    setChartData(data);
     
-      console.log("fetching chart data for", selectedStock, "with", ohlcData.length, "candles")
+    console.log("fetching chart data for", selectedStock, "with", ohlcData.length, "candles")
     
-      // Set a random starting point for the chart display
-      const randomIndex = Math.floor(Math.random() * (ohlcData.length - candlesAmount - MAXIMUM_SKIP_AMOUNT+10));
-      setCurrentChartIndex(randomIndex);
+    // Calculate the maximum possible index that would still allow for 'MAXIMUM_SKIP_AMOUNT' number of candles to be skipped from the end
+    const maxPossibleIndex = ohlcData.length - MAXIMUM_SKIP_AMOUNT;
+    
+    // Calculate the minimum possible index that would still allow for 'candlesAmount' number of candles to be displayed
+    const minPossibleIndex = candlesAmount;
+    
+    // Set a random starting point for the chart display within the valid range
+    const randomIndex = Math.floor(Math.random() * (maxPossibleIndex - minPossibleIndex + 1)) + minPossibleIndex;
+    setCurrentChartIndex(randomIndex);
   }
+
+
     
   useEffect(() => {
 
@@ -274,7 +288,9 @@ console.log(wWidth, wHeight, );
 
     // add 1 to skipAmount so we see final candle!
     const loopLength = skipAmount;
-    for (let i = 1; i <= loopLength+1; i++) {
+    for (let i = 1; i <= loopLength + 1; i++) {
+      setIsFastForwardingChart(true)
+
       promises.push(new Promise((resolve) => {
         setTimeout(() => {
           const newIndex = currentChartIndex + i;
@@ -311,6 +327,7 @@ console.log(wWidth, wHeight, );
           }
         }, skipTimePerCandle * i); // Delay for simulation effect
       }));
+      setIsFastForwardingChart(false)
     }
 
     return Promise.all(promises).then(() => {
@@ -675,6 +692,11 @@ if (takeProfit || stopLoss || trailingStopPct) {
   console.log('chartData', chartData)
 
     const HIDE_STOCK_NAME = true // keep hidden replace with ****
+
+    const showingChartData = chartData.ohlcData.slice(currentChartIndex - candlesAmount, currentChartIndex)
+
+
+    console.log('showingChartData',showingChartData, 'currentChartIndex', currentChartIndex, 'candlesAmount', candlesAmount)
     
   return (
     <View style={styles.container}>
@@ -724,14 +746,14 @@ if (takeProfit || stopLoss || trailingStopPct) {
               <Text style={styles.streakText}>{streak}x</Text>
             </View>
             <TouchableOpacity onPress={() => setModalVisible(true)}>
-              <Image source={require('../assets/stats.png')} style={styles.statsButtonImage} />
+             <Icon name="bar-chart" size={24} color={LIGHT_MODE ? 'black' : 'white'} style={styles.statsButtonImage} />
             </TouchableOpacity>
           </View>
         </View>
 
       <View style={styles.chartContainer}>
         <CandlestickChartComponent
-          ohlc={chartData.ohlcData.slice(currentChartIndex - candlesAmount, currentChartIndex)}
+          ohlc={showingChartData}
           tradeStartIndex={tradeStartIndex}
           currentIndex={currentChartIndex}
           currPrice={currPrice}
@@ -741,6 +763,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
           trailingStop={trailingStop}
           height={styles.chartHeightWidth.height}
           width={styles.chartHeightWidth.width}
+          hideLinePath={isFastForwardingChart}
         />
 
         <View style={{ position: 'absolute', top: 20, left: 20 }}>
@@ -787,7 +810,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
                 style={[styles.button, { marginLeft: 10 }]}
                 onPress={() => fastForwardChart(skipCandlesAmount)}
               >
-                <Image source={require('../assets/fast-forward.png')} style={{ width: 30, height: 30 }} />
+                <Icon name="fast-forward" size={30} color="white"/>
               </TouchableOpacity>
             </View>
           </View>

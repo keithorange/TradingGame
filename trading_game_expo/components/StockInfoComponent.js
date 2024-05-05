@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Image, View, Text, TouchableOpacity, StyleSheet, Modal, FlatList, ScrollView, Dimensions } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const StockInfoComponent = ({ selectedStock, onSelectStock, allStockData, onRefresh, hideStockName }) => {
     const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -39,7 +40,8 @@ const StockInfoComponent = ({ selectedStock, onSelectStock, allStockData, onRefr
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
-                <Image source={require('../assets/refresh.png')} style={styles.icon} />
+                <Icon name="refresh" size={30} color="black" />
+
             </TouchableOpacity>
 
             {dropdownVisible && (
