@@ -4,7 +4,6 @@
 import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { CandlestickChart, LineChart } from 'react-native-wagmi-charts';
-import Icon from 'react-native-vector-icons/FontAwesome';
 
 
 const CandlestickChartComponent = ({ ohlc, tradeStartIndex, currentIndex, currPrice, tradeStartPrice, onPressChartFn, takeProfit, stopLoss, trailingStop,

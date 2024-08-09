@@ -1,8 +1,6 @@
 import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View, ScrollView, FlatList, Dimensions } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
-import { CandlestickChart, LineChart } from 'react-native-wagmi-charts';
-import Icon from 'react-native-vector-icons/FontAwesome';
 
 import * as d3Shape from 'd3-shape';
 
@@ -156,7 +154,7 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                                   />
 
                                  <Text style={styles.chartTitle}>Total ROI Over Time</Text> 
-                                  {cumBarData.length > 0 && (
+                                  {/* {cumBarData.length > 0 && (
                                     <LineChart.Provider data={cumBarData}>
                                       <LineChart yGutter={0} height={height*0.2} width={width*0.8} >
                                         <LineChart.Path color="orange" pathProps={{
@@ -167,10 +165,10 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                                           curve: d3Shape.curveStepBefore
                                         }}>
                                             <LineChart.Dot color="orange" at={cumBarData.length-1}
-                            pulseBehaviour={"always"} />
+                            pulseBehaviour={"always"} /> */}
                           
                       {/* line at 0 */}
-                          <LineChart.HorizontalLine
+                          {/* <LineChart.HorizontalLine
                             at={{ value: 0 }}
                             color="grey"  // Color for Stop Loss
                           />
@@ -192,7 +190,7 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                                         }}>
                                             <LineChart.Dot color="orange" at={cumBarData.length-1}
                             pulseBehaviour={"always"} />
-                          {/* line at 0 */}
+
                           <LineChart.HorizontalLine
                             at={{ value: 0 }}
                             color="grey"  // Color for Stop Loss
@@ -200,7 +198,7 @@ const MetricsModal = ({ visible, onClose, trades }) => {
                                         </LineChart.Path>
                                       </LineChart>
                                     </LineChart.Provider>
-                                    )}
+                                    )} */}
 
 
                               <FlatList

@@ -52,10 +52,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   draggableContainer: {
-    width: '95%',  // Static size based on parent container
-    height: '95%',  // Static height
+    width: '33%',  // Static size based on parent container
+    height: '66%',  // Static height
     borderRadius: 10,  // Slightly rounded corners
-    backgroundColor: 'rgba(255,213,209,0.5)',
+    backgroundColor: 'rgba(255,213,209,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 6,  // Shadow for Android

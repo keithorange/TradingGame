@@ -2,7 +2,7 @@
 //const priceDataContext = require.context('../price_data', true, /\.js$/);
 
 // same thing but ignore 'OhlcvDataSets.js' 
-const priceDataContext = require.context('../price_data', true, /^\.\/(?!OhlcvDataSets\.js$).*\.js$/);
+const priceDataContext = require.context('./price_data', true, /^\.\/(?!OhlcvDataSets\.js$).*\.js$/);
 
 // Helper function to add a timestamp key by converting date to timestamp
 function addTimestamps(data) {
