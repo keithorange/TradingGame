@@ -1,221 +1,305 @@
+import React, { useMemo } from 'react';
+import { View, StyleSheet } from 'react-native';
 
-
-
-import React from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
-import { CandlestickChart, LineChart } from 'react-native-wagmi-charts';
-
-
-const CandlestickChartComponent = ({ ohlc, tradeStartIndex, currentIndex, currPrice, tradeStartPrice, onPressChartFn, takeProfit, stopLoss, trailingStop,
-  height, width,
-hideLinePath= false
+const CandlestickChart = ({
+  ohlc,
+  tradeStartIndex,
+  currentIndex,
+  currPrice,
+  tradeStartPrice,
+  onPressChartFn,
+  takeProfit,
+  stopLoss,
+  trailingStop,
+  height,
+  width,
+  hideLinePath = false,
+  isLong,
+  emaPeriod,
+  useHeikinAshi,
+  useBBCandles,
 }) => {
+  const chartWidth = width;
+  const chartHeight = height;
+  const padding = { top: 10, right: 10, bottom: 20, left: 40 };
 
-  console.log('IN (CandlestickChartComponent)', 'ohlc', ohlc )
-
-
-  const lineData = ohlc.map(entry => ({
-    timestamp: entry.timestamp,
-    value: entry.close
-  }));
-
-
-  var tradeDuration = 0;
-  if (currentIndex > 0 && tradeStartIndex > 0) {
-    tradeDuration = currentIndex - tradeStartIndex;
-  }
-
-
-
-  const roi = ((currPrice - tradeStartPrice) / tradeStartPrice) * 100.0;
-
-  const isWeb = Platform.OS === 'web'
-
-
-
-  const normalizedTradeStartIndex = tradeStartIndex - (currentIndex - ohlc.length);
-  
-const activePathOhlc = ohlc.map((entry, index) => {
-  const mean = (entry.open + entry.high + entry.low + entry.close) / 4;
-
-  
-  // Function to create a flattened candlestick
-  const flatCandle = {
-    ...entry,
-    open: mean,
-    high: mean,
-    low: mean,
-    close: mean,
+  const calculateHeikinAshi = (data) => {
+    if (!data || data.length === 0) return [];
+    const haData = [];
+    let previousHA = { open: data[0].open, close: data[0].close };
+    data.forEach((candle) => {
+      const haClose = (candle.open + candle.high + candle.low + candle.close) / 4;
+      const haOpen = (previousHA.open + previousHA.close) / 2;
+      const haHigh = Math.max(candle.high, haOpen, haClose);
+      const haLow = Math.min(candle.low, haOpen, haClose);
+      haData.push({ open: haOpen, high: haHigh, low: haLow, close: haClose });
+      previousHA = { open: haOpen, close: haClose };
+    });
+    return haData;
   };
 
-  // Flatten the candles before the trade starts or when there's no active trade
-  if (index < normalizedTradeStartIndex-1 || !tradeStartIndex) {
-    return   flatCandle 
-  }
+  const calculateBollingerBands = (data, period = 20, stdDev = 2) => {
+    const closes = data.map(d => d.close);
+    
+    const sma = closes.map((_, i, arr) => 
+      arr.slice(Math.max(0, i - period + 1), i + 1)
+        .reduce((sum, val) => sum + val, 0) / Math.min(i + 1, period)
+    );
 
-  // Return normal candles after the trade has started
-  return entry;
-});
+    const stdDevs = closes.map((_, i, arr) => {
+      const slice = arr.slice(Math.max(0, i - period + 1), i + 1);
+      const mean = sma[i];
+      const squareDiffs = slice.map(val => Math.pow(val - mean, 2));
+      return Math.sqrt(squareDiffs.reduce((sum, diff) => sum + diff, 0) / slice.length);
+    });
 
+    const upperBand = sma.map((smaValue, i) => smaValue + stdDev * stdDevs[i]);
+    const lowerBand = sma.map((smaValue, i) => smaValue - stdDev * stdDevs[i]);
 
-  // Mapping function to either return normal candles or flattened candles based on the index
-  const processedOhlc = ohlc.map((entry, index) => {
+    return data.map((candle, i) => ({
+      ...candle,
+      sma: sma[i],
+      upperBand: upperBand[i],
+      lowerBand: lowerBand[i],
+      bbOpen: (candle.open - lowerBand[i]) / (upperBand[i] - lowerBand[i]),
+      bbHigh: (candle.high - lowerBand[i]) / (upperBand[i] - lowerBand[i]),
+      bbLow: (candle.low - lowerBand[i]) / (upperBand[i] - lowerBand[i]),
+      bbClose: (candle.close - lowerBand[i]) / (upperBand[i] - lowerBand[i]),
+    }));
+  };
 
-    // Calculate the mean of the candlestick values
-    const mean = (entry.open + entry.high + entry.low + entry.close) / 4;
+  const candleData = useMemo(() => {
+    if (useHeikinAshi) {
+      return calculateHeikinAshi(ohlc);
+    } else if (useBBCandles) {
+      return calculateBollingerBands(ohlc);
+    }
+    return ohlc;
+  }, [ohlc, useHeikinAshi, useBBCandles]);
 
-    // Function to create a flattened candlestick
-    const flatCandle = {
-      ...entry,
-      open: mean,
-      high: mean,
-      low: mean,
-      close: mean,
+  const candleWidth = useMemo(() => {
+    return (chartWidth - padding.left - padding.right) / candleData.length * 0.8;
+  }, [chartWidth, candleData.length]);
+
+  const xScale = useMemo(() => {
+    const domain = [0, candleData.length - 1];
+    const range = [padding.left, chartWidth - padding.right];
+    return (index) => {
+      return ((index - domain[0]) / (domain[1] - domain[0])) * (range[1] - range[0]) + range[0];
     };
+  }, [chartWidth, candleData.length]);
 
+  const yScale = useMemo(() => {
+    if (useBBCandles) {
+      return (value) => {
+        return chartHeight - ((value * (chartHeight - padding.top - padding.bottom)) + padding.bottom);
+      };
+    } else {
+      const prices = candleData.flatMap(candle => [candle.high, candle.low]);
+      const domain = [Math.min(...prices), Math.max(...prices)];
+      const range = [chartHeight - padding.bottom, padding.top];
+      return (price) => {
+        return ((price - domain[0]) / (domain[1] - domain[0])) * (range[1] - range[0]) + range[0];
+      };
+    }
+  }, [chartHeight, candleData, useBBCandles]);
 
-    // Flatten the candles past the currentIndex
-    if ((tradeDuration > 0 )&&(index > normalizedTradeStartIndex)) {
-      return flatCandle;
+  const normalizedTradeStartIndex = tradeStartIndex - (currentIndex - candleData.length);
+
+  const renderCandle = (candle, index) => {
+    const x = xScale(index);
+    const openY = yScale(useBBCandles ? candle.bbOpen : candle.open);
+    const closeY = yScale(useBBCandles ? candle.bbClose : candle.close);
+    const highY = yScale(useBBCandles ? candle.bbHigh : candle.high);
+    const lowY = yScale(useBBCandles ? candle.bbLow : candle.low);
+
+    const isActive = tradeStartIndex > 0 && index >= normalizedTradeStartIndex && index <= currentIndex;
+    const isBullish = candle.close > candle.open;
+
+    let fillColor;
+    let strokeColor;
+
+    if (!isActive) {
+      fillColor = isBullish ? 'rgba(0,128,0,1)' : 'rgba(255,0,0,1)';
+      strokeColor = isBullish ? 'rgba(0,100,0,1)' : 'rgba(178,34,34,1)';
+    } else {
+      fillColor = isBullish ? 'rgba(0,255,0,1)' : 'rgba(255,105,180,1)';
+      strokeColor = isBullish ? 'rgba(50,205,50,1)' : 'rgba(255,0,127,1)';
     }
 
-    // Return normal candlestick data for those before or at the currentIndex
-    return entry;
-  });
+    return (
+      <g key={index}>
+        <line
+          x1={x + candleWidth / 2}
+          y1={highY}
+          x2={x + candleWidth / 2}
+          y2={lowY}
+          stroke={strokeColor}
+          strokeWidth={2.24}
+        />
+        <rect
+          x={x}
+          y={Math.min(openY, closeY)}
+          width={candleWidth}
+          height={Math.max(Math.abs(closeY - openY), 1)}
+          fill={fillColor}
+          stroke={strokeColor}
+          strokeWidth={0.5}
+        />
+      </g>
+    );
+  };
 
+  const renderHorizontalLine = (value, color, label) => {
+    if (value == null || isNaN(value)) return null;
+    const yValue = useBBCandles
+      ? (value - candleData[candleData.length - 1].lowerBand) /
+        (candleData[candleData.length - 1].upperBand - candleData[candleData.length - 1].lowerBand)
+      : value;
+
+    const yPosition = yScale(yValue);
+
+    if (isNaN(yPosition)) return null;
+
+    return (
+      <g key={label}>
+        <line
+          x1={padding.left}
+          y1={yPosition}
+          x2={chartWidth - padding.right}
+          y2={yPosition}
+          stroke={color}
+          strokeDasharray="5"
+        />
+        <text
+          x={chartWidth - padding.right + 5}
+          y={yPosition}
+          fill={color}
+          dominantBaseline="middle"
+          fontSize="10"
+        >
+          {label}
+        </text>
+      </g>
+    );
+  };
+
+  const renderBollingerBands = () => {
+    if (!useBBCandles || candleData.length === 0) return null;
+
+    const upperPoints = candleData.map((_, index) =>
+      `${xScale(index)},${yScale(1)}`
+    ).join(' ');
+
+    const middlePoints = candleData.map((_, index) =>
+      `${xScale(index)},${yScale(0.5)}`
+    ).join(' ');
+
+    const lowerPoints = candleData.map((_, index) =>
+      `${xScale(index)},${yScale(0)}`
+    ).join(' ');
+
+    return (
+      <>
+        <polyline points={upperPoints} fill="none" stroke="rgba(255,0,0,.5)" strokeWidth={1} />
+        <polyline points={middlePoints} fill="none" stroke="rgba(0,.5,.5,.5)" strokeWidth={1} />
+        <polyline points={lowerPoints} fill="none" stroke="rgba(255,.5,.5,.5)" strokeWidth={1} />
+      </>
+    );
+  };
+
+const renderEMA = () => {
+    // Ensure we have enough data to calculate EMA
+    if (!emaPeriod || !candleData.length) return null;
+
+    // Calculate EMA using all candle data and pass emaPeriod
+    let emaValues = calculateEMA(candleData, emaPeriod);
+    
+    // Create points for rendering the EMA line
+    let pointsString = emaValues.map((value, index) =>
+      `${xScale(index)},${yScale(value)}`
+    ).join(' ');
+
+    return (
+<polyline points={pointsString} fill="none" stroke="rgba(255, 255, 255, 0.69)" strokeWidth={2} />
+    );
+};
+
+const calculateEMA = (data, emaPeriod) => {
+    let k = 2 / (emaPeriod + 1);
+    let ema = [];
+
+    // Initialize EMA with first value
+    if (data.length > 0) {
+        ema[0] = data[0].close; // Start with the first closing price
+
+        // Calculate subsequent EMA values
+        for (let i = 1; i < data.length; i++) {
+            if (i < emaPeriod) {
+                // For the initial period, just carry forward the previous value
+                ema[i] = (data[i].close + (ema[i - 1] * (i - 1))) / i;
+            } else {
+                // Calculate EMA using the formula
+                let newEma = (data[i].close * k) + (ema[i - 1] * (1 - k));
+                ema.push(newEma);
+            }
+        }
+    }
+
+    return ema;
+};
+
+
+  const renderPulsatingDot = () => {
+    if (currPrice == null || isNaN(currPrice)) return null;
+
+    let x = xScale(candleData.length - 1);
+    let y = yScale(useBBCandles
+      ? (currPrice - candleData[candleData.length - 1].lowerBand) /
+        (candleData[candleData.length - 1].upperBand - candleData[candleData.length - 1].lowerBand)
+      : currPrice
+    );
+
+    if (isNaN(y)) return null;
+
+    return (
+      <g>
+        <circle cx={x} cy={y} r="6" fill="white">
+          <animate attributeName="r" values="3;5;3" dur="1.5s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="1;0.8;1" dur="1.5s" repeatCount="indefinite" />
+        </circle>
+      </g>
+    );
+  }
+
+  const isProfit = currPrice != null && tradeStartPrice != null &&
+                 ((isLong && currPrice > tradeStartPrice) || (!isLong && currPrice < tradeStartPrice));
+
+  let currentPriceColor = isProfit ? 'green' : 'red';
 
   return (
     <View style={styles.container}>
-
-      <View style={styles.chart}>
-
-        {/* Bottom red greren candlestick chart */}
-
-          {/* shift ohlc 1 tp left */}
-          <CandlestickChart.Provider data={processedOhlc}>
-            <CandlestickChart height={height} width={width}>
-              <CandlestickChart.Candles useAnimations={false} />  {/* Disable animations */}
-              {/* <CandlestickChart.Crosshair
-                color={"rgba(250,99,2,0)"}
-                onCurrentXChange={onPressChartFn}>
-              </CandlestickChart.Crosshair>
-               */}
-            </CandlestickChart>
-            {/* <CandlestickChart.PriceText type="open" />
-            <CandlestickChart.PriceText type="high" />
-            <CandlestickChart.PriceText type="low" />
-            <CandlestickChart.PriceText type="close" />
-            <CandlestickChart.DatetimeText /> */}
-          </CandlestickChart.Provider>
-
-      </View>
-
-
-     <View style={styles.chart}>
-      <CandlestickChart.Provider data={activePathOhlc}>
-        <CandlestickChart height={height} width={width}>
-          <CandlestickChart.Candles useAnimations={false} positiveColor={"rgba(0,255,0,1)"} negativeColor={"#ffb2d0"} /> 
-          {/* <CandlestickChart.Crosshair
-            color={"rgba(250,99,2,0)"}
-            onCurrentXChange={onPressChartFn}>
-          </CandlestickChart.Crosshair> */}
-          
-        </CandlestickChart>
-        
-      </CandlestickChart.Provider>
-      </View > 
-    
-
-      {/* ON TOP linegraph with lines (kinda glitchy) */}
-      <View style={styles.overlayChart}>
-        {lineData.length > 0 && (
-        <LineChart.Provider data={lineData}>
-            <LineChart //yGutter={0} 
-              height={height} width={width} >
-              
-              <LineChart.Path color="transparent" pathProps={{
-              isTransitionEnabled: false,
-              yGutter: 0,
-              animateOnMount: false,
-              animationDuration: 0,
-
-              //curve: d3Shape.curveNatural
-            }}>
-
-
-
-                            {/* Curr place dot */}
-              <LineChart.Dot color="orange" at={lineData.length-1}
-                hasPulse pulseBehaviour={"always"} />
-{/* 
-
-              <LineChart.Highlight color="orange" to={lineData.length - 1} from={(lineData.length - 1) - tradeDuration} /> */}
-
-
-
-              {/* Horiz lines for buy/sell */}
-              {tradeDuration > 0 && (
-                <LineChart.HorizontalLine at={{ value: currPrice }}
-                  color={roi > 0 ? 'green' : 'red'} />
-              )}
-              {tradeDuration > 0 && (
-                <LineChart.HorizontalLine at={{ value: tradeStartPrice }} color={'gray'} />
-              )}
-
-              {/* Take Profit and Stop Loss */}
-              {takeProfit && (
-                <LineChart.HorizontalLine
-                  at={{ value: takeProfit }}
-                  color="#2196F3"  // Color for Take Profit
-                  label={`TP: ${takeProfit}`}
-                />
-              )}
-              {stopLoss && (
-                <LineChart.HorizontalLine
-                  at={{ value: stopLoss }}
-                  color="#FF9800"  // Color for Stop Loss
-                  label={`SL: ${stopLoss}`}
-                />
-              )}
-
-              {/* Trailing Stop */}
-              {trailingStop && (
-                <LineChart.HorizontalLine
-                  at={{ value: trailingStop }}
-                  color="rgba(255,153,221,1)"  // Color for Trailing Stop
-                  label={`TS: ${trailingStop}`}
-                />
-              )}
-            </LineChart.Path>
-          </LineChart>
-        </LineChart.Provider>
-        )}
-        </View>
-
+      <svg width={chartWidth} height={chartHeight}>
+        {renderBollingerBands()}
+        {candleData.map(renderCandle)}
+        {emaPeriod && renderEMA()} 
+        {currPrice != null && renderHorizontalLine(currPrice, currentPriceColor, `Current: ${currPrice.toFixed(2)}`)}
+        {tradeStartIndex > 0 && tradeStartPrice != null && renderHorizontalLine(tradeStartPrice, 'gray', `Start: ${tradeStartPrice.toFixed(2)}`)}
+        {takeProfit && renderHorizontalLine(takeProfit, '#2196F3', `TP: ${takeProfit.toFixed(2)}`)}
+        {stopLoss && renderHorizontalLine(stopLoss, '#FF9800', `SL: ${stopLoss.toFixed(2)}`)}
+        {trailingStop && renderHorizontalLine(trailingStop, 'rgba(255,153,221,1)', `TS: ${trailingStop.toFixed(2)}`)}
+        {renderPulsatingDot()}
+      </svg>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    //padding: 20,
+    backgroundColor: 'black',
+    paddingTop: 25,
   },
-  chart: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  overlayChart: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    pointerEvents: 'none', // Allow touches to pass through
-  }
 });
 
-export default CandlestickChartComponent;
+export default CandlestickChart;

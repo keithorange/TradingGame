@@ -73,11 +73,11 @@ console.log(wWidth, wHeight, );
   const [modalVisible, setModalVisible] = useState(false); // stats metrics modal
 
 
-  const [position, setPosition] = useState(null); // Store current position 
+  const [position, setPosition] = useState(null); // Store current position
   const [trades, setTrades] = useState([]); // store historical trades (closed positions)
-  
+
   const [sound, setSound] = useState();
-  
+
   const [totalROI, setTotalROI] = useState(0);
   const [winningStreak, setWinningStreak] = useState(0);
   const [losingStreak, setLosingStreak] = useState(0);
@@ -99,15 +99,15 @@ console.log(wWidth, wHeight, );
   // for trailing game mode
   const [trailingStop, setTrailingStop] = useState(null); //
   const [trailingStopPct, setTrailingStopPct] = useState(null); // useEffect calculated dynamically
-  
-  // chart ema 
+
+  // chart ema
   const [emaPeriod, setEmaPeriod] = useState(12);
   const [useHeikinAshi, setUseHeikinAshi] = useState(false);
 
   const [refreshChartEachTrade, setRefreshChartEachTrade] = useState(false);
-  
-    
-  // confetti  
+
+
+  // confetti
   const [showConfetti, setShowConfetti] = useState(false);
   const confettiRef = useRef(null);
 
@@ -116,13 +116,13 @@ console.log(wWidth, wHeight, );
     setPosition(null);  // Clear the current position
     setTakeProfit(null);  // Clear the take profit
     setStopLoss(null);  // Clear the stop loss
-    
+
     if (!keepTrailingStop) {
       setTrailingStop(null);  // Clear the trailing stop
       setTrailingStopPct(null);  // Clear the trailing stop percentage
     }
   };
-  
+
 
   const triggerConfetti = () => {
     setShowConfetti(true);
@@ -132,9 +132,9 @@ console.log(wWidth, wHeight, );
     }, 5000); // Assume confetti animation lastsMAX  5 seconds
   };
   useEffect(() => {
-    if (showConfetti) { 
-      if (confettiRef.current) { 
-        confettiRef.current.start(); 
+    if (showConfetti) {
+      if (confettiRef.current) {
+        confettiRef.current.start();
         // Timeout to stop() animation after 5 seconds
         setTimeout(() => {
           if (confettiRef.current) { // Check again before stopping
@@ -146,7 +146,7 @@ console.log(wWidth, wHeight, );
       }
     }
   }, [showConfetti]);
-  
+
   // for trailing stop dynamic calculation
 
   const trailingStopToPct = (trailingStop, currentPrice) => {
@@ -160,7 +160,7 @@ console.log(wWidth, wHeight, );
   useEffect(() => {
     if (trailingStop) {
       const pct = trailingStopToPct(trailingStop, getCurrentPrice());
-      
+
       console.log("useEffect Trailing Stop Pct", pct, "trailStop", trailingStop, "currentPrice", getCurrentPrice());
 
       // Ensure the percentage is positive
@@ -170,11 +170,11 @@ console.log(wWidth, wHeight, );
 
       setTrailingStopPct(Math.abs(pct))
 
-      
+
     }
   }, [trailingStop]);
 
-  
+
 
 
   // for draggable adjuster
@@ -191,7 +191,7 @@ console.log(wWidth, wHeight, );
     }
   };
 
-  
+
 
   const handleCloseAdjuster = () => {
     setShowAdjuster(false);
@@ -209,7 +209,7 @@ console.log(wWidth, wHeight, );
     // filler function for now
 
     return ohlcvDataSets.find(item => item.ticker === stock);
-  
+
   }
 
   useEffect(() => {
@@ -224,22 +224,22 @@ console.log(wWidth, wHeight, );
     const data = await getChartData(selectedStock);
     const { stock, ohlcData } = data
     setChartData(data);
-    
+
     console.log("fetching chart data for", selectedStock, "with", ohlcData.length, "candles")
-    
+
     // Calculate the maximum possible index that would still allow for 'MAXIMUM_SKIP_AMOUNT' number of candles to be skipped from the end
     const maxPossibleIndex = ohlcData.length - MAXIMUM_SKIP_AMOUNT;
-    
+
     // Calculate the minimum possible index that would still allow for 'candlesAmount' number of candles to be displayed
     const minPossibleIndex = candlesAmount;
-    
+
     // Set a random starting point for the chart display within the valid range
     const randomIndex = Math.floor(Math.random() * (maxPossibleIndex - minPossibleIndex + 1)) + minPossibleIndex;
     setCurrentChartIndex(randomIndex);
   }
 
 
-    
+
   useEffect(() => {
 
     fetchChartData();  // Call the async function
@@ -331,8 +331,8 @@ useEffect(() => {
     return { "wins": total_wins, "losses": total_losses, "total_trades": total_wins + total_losses, "roi": total_roi };
 
   }
-  
-  
+
+
 
   function executeTrade(direction) {
     if (!position) {
@@ -340,14 +340,14 @@ useEffect(() => {
       const skipAmount = skipCandlesAmount;
       const tradeIndex = currentChartIndex;
       const trade = handleTradeWithConditions(direction, chartData.ohlcData, tradeIndex, skipAmount);
-    
+
       setTradeStartIndex(tradeIndex);
       setPosition(trade);
       setTradeDirection(direction);
     }
   }
-  
-  
+
+
 
     const MAX_SKIP_AMOUNT = 200;
 
@@ -365,7 +365,7 @@ useEffect(() => {
         }
         if (position) {
           const tradeDuration = position.duration;
-    
+
           await fastForwardChart(tradeDuration);
           handleExitPosition();  // Function to handle the exit of the trade
           playSound(position.isWin);
@@ -375,28 +375,28 @@ useEffect(() => {
           }
         }
       };
-    
+
       if (tradeStartIndex !== null) {
         executeFastForward();
       }
     }, [tradeStartIndex]);
-    
-    
+
+
     const fastForwardChart = async (skipAmount) => {
       setIsFastForwardingChart(true); // Set animating state to true
-    
-      const animationDurationMS = 400; // 2 seconds
+
+      const animationDurationMS = 200; // 2 seconds
       const skipTimePerCandle = animationDurationMS / (Math.log(skipAmount + 1) + 1);
-    
+
       const loopLength = skipAmount;
-    
+
       const executeChartUpdate = async (i) => {
         if (stopRequested) {
           // Force trade to exit at the current index
           const newIndex = currentChartIndex + i - 1;
           const newTrade = { ...position, exitPrice: chartData.ohlcData[newIndex].close, exitReason: 'user stopped' };
           const duration = newIndex - tradeStartIndex;
-    
+
           // Calculate the final ROI
           const priceChange = newTrade.exitPrice - newTrade.entryPrice;
           if (newTrade.direction === 'Long') {
@@ -407,20 +407,20 @@ useEffect(() => {
             newTrade.roi = -(priceChange / newTrade.entryPrice) * 100.0;
           }
           newTrade.duration = duration;
-    
+
           setPosition(newTrade);
           setStopRequested(false); // Reset stop request
           setIsFastForwardingChart(false); // Set animating state to false
           handleExitPosition(); // Handle the exit of the trade
           return;
         }
-    
+
         await new Promise((resolve) => {
           setTimeout(() => {
             const newIndex = currentChartIndex + i;
             if (newIndex < chartData.ohlcData.length) {
               setCurrentChartIndex(newIndex);
-    
+
               // Ensure trailing stop is calculated and updated correctly
               if (trailingStopPct && position) {
                 const slicedData = chartData.ohlcData.slice(tradeStartIndex, newIndex + 1); // Include current candle in calculation
@@ -429,10 +429,10 @@ useEffect(() => {
                   trailingStopPct,
                   position.direction
                 );
-    
+
                 const currentTrailingStop = trailingStops[trailingStops.length - 1];
                 setTrailingStop(currentTrailingStop);
-    
+
                 if (isHit) {
                   setPosition({ ...position, exitPrice: hitPrice, exitReason: 'trailing stop hit' });
                   setTrailingStop(null);
@@ -445,17 +445,17 @@ useEffect(() => {
             }
           }, skipTimePerCandle); // Delay for simulation effect
         });
-    
+
         if (i < loopLength + 1) {
           executeChartUpdate(i + 1);
         } else {
           setIsFastForwardingChart(false); // Set animating state to false
         }
       };
-    
+
       executeChartUpdate(1);
     };
-    
+
 
   async function setVolumeFromStreak(sound, streak) {
     function getVolumeFromStreak(maxStreak = 10, minVol = 0.5, maxVol = 1.0) {
@@ -501,22 +501,22 @@ useEffect(() => {
     // Update the last trade in the trades list with the result and final ROI
     const closedTrade = position; // Declare and assign the closed trade
     setTrades([...trades, closedTrade]);
-  
+
     // Clear the current position
     setPosition(null);
-  
+
     // Uncomment to clear path/lines AFTER trade (comment to keep in!)
     setTradeStartIndex(null);  // Reset the trade start index
-  
+
     // Clear any set TPSL
     resetTradeState(false)
-  
+
     if (refreshChartEachTrade) {
       refreshNewStock();
     }
   }
-  
-  
+
+
   const calculateTrailingStopSequence = (data, trailingStopPct, direction, emaPeriod = 12, exitPriceIsStop = true) => {
     const calculateEMA = (data, period) => {
       const k = 2 / (period + 1);
@@ -526,25 +526,25 @@ useEffect(() => {
         return ema;
       });
     };
-  
+
     const emaData = calculateEMA(data, emaPeriod);
     // console.log('EMA Data:', emaData);  // Debugging
-  
+
     let extremePrice = emaData[0]; // Initialize with the first EMA value
     let trailingStops = [];
     let stopPrice = 0;
     let hitDetected = false;
     let hitPrice = null;
     let hitIdx = -1;
-  
+
     // Ensure trailingStopPct is always positive
     let adjustedTrailingStopPct = Math.abs(trailingStopPct) / 100.0;
     // console.log('Adjusted Trailing Stop Percentage:', adjustedTrailingStopPct);  // Debugging
-  
+
     for (let i = 1; i < emaData.length; i++) {
       const ema = emaData[i];
       // console.log(`Processing index ${i}, EMA value: ${ema}`);  // Debugging
-  
+
       if (direction === 'Long') {
         extremePrice = Math.max(extremePrice, ema);
         stopPrice = extremePrice - (extremePrice * adjustedTrailingStopPct);
@@ -552,10 +552,10 @@ useEffect(() => {
         extremePrice = Math.min(extremePrice, ema);
         stopPrice = extremePrice + (extremePrice * adjustedTrailingStopPct);
       }
-  
+
       trailingStops.push(stopPrice);
       // console.log(`Updated Trailing Stop for index ${i}: ${stopPrice}`);  // Debugging
-  
+
       if (!hitDetected) {
         if ((direction === 'Long' && ema <= stopPrice) ||
             (direction === 'Short' && ema >= stopPrice)) {
@@ -565,13 +565,13 @@ useEffect(() => {
           console.log(`Trailing Stop Hit at index ${i}, Hit Price: ${hitPrice}`);  // Debugging
         }
       }
-  
+
       if (hitDetected) break;
     }
-  
+
     // Final debugging
     console.log('Trailing Stops:', trailingStops);
-  
+
     return {
       isHit: hitDetected,
       stopPrice: stopPrice,
@@ -580,8 +580,8 @@ useEffect(() => {
       hitIdx: hitIdx
     };
   };
-  
-  
+
+
     function handleTradeWithConditions(direction, data, index, skipInterval, use_mean_price=false, exitPriceIsStop=true) {
     console.log('direction', direction, 'data.length', data.length, 'index', index, 'skipInterval', skipInterval)
 
@@ -604,7 +604,7 @@ useEffect(() => {
       direction: direction,
       exitReason: `times up`,
     });
-    
+
 
     console.log("Trade", trade);
     console.log("TakeProfit", takeProfit);  // Price level for taking profit
@@ -616,8 +616,8 @@ if (takeProfit || stopLoss || trailingStopPct) {
     // Checking take profit and stop loss conditions
     const candle = data[i]
     const meanPrice = (candle.open + candle.high + candle.low + candle.close) / 4;
-    
-    const doTakeProfitLogic = () => { 
+
+    const doTakeProfitLogic = () => {
       trade.exitPrice = exitPriceIsStop ? takeProfit : price;
       trade.exitDate = data[i].date;
       trade.duration = i - index;
@@ -635,10 +635,10 @@ if (takeProfit || stopLoss || trailingStopPct) {
 
 
     if (direction === 'Long') {
-      
+
       let price = use_mean_price ? meanPrice : candle.high;
 
-      
+
 
       if (takeProfit && price >= takeProfit) {
         doTakeProfitLogic();
@@ -681,7 +681,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
       }
     }
 
-      
+
 
     // default roi
     if (trade.direction === 'Long') {
@@ -694,12 +694,12 @@ if (takeProfit || stopLoss || trailingStopPct) {
     return trade;
   }
 
-  
 
 
-  
+
+
   const winRate = (wins + losses) > 0 ? (wins / (wins + losses)) * 100 : 0;
-  
+
   var currPrice = null;
   var tradeStartPrice = null;
   if (tradeStartIndex !== null) {
@@ -707,7 +707,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
     currPrice = chartData.ohlcData[currentChartIndex].close;
     tradeStartPrice = null;
     if (tradeStartIndex !== null) {
-      tradeStartPrice = chartData.ohlcData[tradeStartIndex-1].close; // -1 or else will get +1 
+      tradeStartPrice = chartData.ohlcData[tradeStartIndex-1].close; // -1 or else will get +1
     }
   }
 
@@ -777,7 +777,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
 
 
     console.log('showingChartData',showingChartData, 'currentChartIndex', currentChartIndex, 'candlesAmount', candlesAmount)
-    
+
     const handleStopPress = () => {
       setStopRequested(true); // Set stop request to true
     };
@@ -785,7 +785,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
   return (
     <View style={styles.container}>
       {/* INITIALLYT INVISIBLE */}
-      
+
 
       {/* Metrics Modal */}
       <MetricsModal
@@ -809,7 +809,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
           ref={confettiRef}
           fallSpeed={3000} />
       )}
-      
+
       <View style={styles.headerContainer}>
         <StockInfoComponent
           selectedStock={selectedStock}
@@ -858,14 +858,14 @@ if (takeProfit || stopLoss || trailingStopPct) {
 
         <View style={{ position: 'absolute', top: 20, left: 20 }}>
           <Text style={{
-            color: LIGHT_MODE ? '#808e9b' : '#d2dae2', fontStyle: 'underline', fontSize: 18, 
+            color: LIGHT_MODE ? '#808e9b' : '#d2dae2', fontStyle: 'underline', fontSize: 18,
             textDecorationLine: 'underline',
-            
+
           }}>Length: {candlesAmount}</Text>
           <Slider
             style={{ flex: 1, height: 30, minWidth: 100, paddingTop: 10 }}
             minimumValue={10}
-            maximumValue={300}
+            maximumValue={1000}
             step={1}
             value={candlesAmount}
             onSlidingComplete={setCandlesAmount}
@@ -874,8 +874,8 @@ if (takeProfit || stopLoss || trailingStopPct) {
           />
         </View>
 
-        
-        
+
+
       </View>
 
     {isFastForwardingChart ? (
@@ -884,7 +884,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
       </TouchableOpacity>
     ) : (
       <View style={styles.controlMenu}>
-          
+
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
           <View>
             <Text style={{ color: LIGHT_MODE ? '#808e9b' : '#d2dae2', fontStyle: 'underline', fontSize: 18, textDecorationLine: 'underline', textAlign: 'right', paddingBottom: 10 }}>
@@ -913,23 +913,23 @@ if (takeProfit || stopLoss || trailingStopPct) {
         </View>
 
 
-          <View style={{ flexDirection: 'row', }}> 
+          <View style={{ flexDirection: 'row', }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-around',  }}>
               <TouchableOpacity
-                style={[styles.longshortButton, { backgroundColor:  '#4cd137', borderRadius: 50 }]}  
+                style={[styles.longshortButton, { backgroundColor:  '#4cd137', borderRadius: 50 }]}
                 onPress={() => executeTrade('Long')}
               >
                 <Text style={styles.longshortButtonText}>Long </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.longshortButton, { backgroundColor: '#EA2027', borderRadius: 50 }]} 
+                style={[styles.longshortButton, { backgroundColor: '#EA2027', borderRadius: 50 }]}
                 onPress={() => executeTrade('Short')}
               >
                 <Text style={styles.longshortButtonText}>Short</Text>
               </TouchableOpacity>
             </View>
             {/* TP, SL, TS Buttons View */}
-            <View style={{ flexDirection: 'column', justifyContent: 'space-between' }}> 
+            <View style={{ flexDirection: 'column', justifyContent: 'space-between' }}>
               <TouchableOpacity
                 style={[styles.tpsltsButton, {
                   borderColor: takeProfit ? '#2196F3' : '#2196F3',
@@ -989,7 +989,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
                 onValueChange={(value) => setRefreshChartEachTrade(value)}
               />
             </View>
-              
+
             </View>
           </View>
         </View>
@@ -1002,7 +1002,7 @@ if (takeProfit || stopLoss || trailingStopPct) {
               onClose={handleCloseAdjuster}
             />
           )}
-          
+
       {/* GLOBAL FLASH MESSAGE COMPONENT INSTANCE */}
       <FlashMessage position="top" /> {/* <--- here as the last component */}
     </View>
@@ -1046,7 +1046,7 @@ const styles = StyleSheet.create({
   chartContainer: {
     // align left
     flex: 1,
-    
+
   },
   statsButtonImage: {
     width: 30,
@@ -1061,20 +1061,20 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 10,
     backgroundColor: LIGHT_MODE ? '#a5b1c2' : '#3d3d3d',
-    elevation: 10, 
+    elevation: 10,
   },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
-    
+
   },
-  
+
   controls: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '100%',
   },
-  
+
   statsButtonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -1097,7 +1097,7 @@ controlMenu: {
   bottom: 0,
   left: 0 ,
   borderRadius: 10,
-  backgroundColor: LIGHT_MODE ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)', 
+  backgroundColor: LIGHT_MODE ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
 },
 
 
@@ -1113,10 +1113,10 @@ controlMenu: {
     shadowOffset: { width: 0, height: 2 }, // For iOS shadow
     shadowRadius: 6, // For iOS shadow
     shadowOpacity: 0.2, // For iOS shadow
-    
+
     marginRight: 10, // Spacing between buttons,
 
-    // add 
+    // add
 
   },
   longshortButtonText: {
